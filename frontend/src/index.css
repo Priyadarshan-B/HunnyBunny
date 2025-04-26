@@ -1,0 +1,45 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+:root {
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: "Outfit", sans-serif;
+}
+*{
+  font-family: "Outfit", sans-serif;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Outfit", sans-serif;
+  color: var(--text);
+}
+ 
+/* Style the scrollbar track */
+::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+/* Style the part of the scrollbar not covered by the thumb */
+::-webkit-scrollbar-track {
+    background: var(--background); /* Background color of the track */
+}
+
+/* Style the draggable part of the scrollbar */
+::-webkit-scrollbar-thumb {
+    background: #179be7; /* Color of the thumb */
+    border-radius: 10px; /* Optional: Adds rounded corners to the thumb */
+}
+
+/* Optional: Style the thumb on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--background); /* Change color when hovered */
+}
+
+::-webkit-scrollbar {
+  height: 4px; /* Width of the horizontal scrollbar */
+}
