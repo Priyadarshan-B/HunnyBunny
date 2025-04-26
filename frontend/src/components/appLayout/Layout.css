@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Platypi:ital,wght@0,300..800;1,300..800&family=Playwrite+FR+Moderne:wght@100..400&family=Playwrite+FR+Trad:wght@100..400&family=Stylish&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&family=Varela+Round&display=swap');
 
 .app-sidebar {
-    width: 300px;
+    width: 280px;
     /* Start with width instead of max-width */
     height: 100%;
     transition: width 0.3s;
@@ -9,6 +9,7 @@
     overflow: auto;
     background-color: var(--background-1);
     box-shadow: var(--shadow);
+    padding: 0px 10px;
 }
 
 .menu-names {
@@ -25,6 +26,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
 }
 
 .app-name {
@@ -69,11 +71,11 @@ p {
         display: block;
         position: fixed;
         z-index: 2;
-        width: 250px;
+        width: 220px;
     }
 
     .app-sidebar:hover {
-        width: 250px;
+        width: 220px;
     }
 }
 
@@ -120,21 +122,20 @@ p {
     background-color: var(--menu-hover);
 }
 
-.list-items:hover .link {
-    color: #6c7293;
+.link:hover .custom-sidebar-icon{
+    /* background-color: white; */
 }
 
 .link {
     text-decoration: none;
-    color: #6c7293;
-    font-weight: var(--f-weight);
-    font-size: 16px;
+    color: var(--text);
+    /* font-weight: 500; */
+    font-size: 14px;
     display: flex;
     align-items: center;
-    padding: 7px 7px 7px 7px;
-    margin-left: 3px;
+    padding: 7px;
     /* transition: all 0.3s; */
-    border-radius: 40px 0px 0px 40px;
+    border-radius: 5px;
 }
 
 .list-items.active .link {
@@ -145,37 +146,19 @@ p {
 .list-items.active .custom-sidebar-icon,
 .list-items.active .custom-sidebar-icon1,
 .list-items.active .custom-sidebar-icon2 {
-    background-color: var(--active-bg);
+    /* background-color: var(--active-bg); */
     box-shadow: var(--shadow);
 }
 
 
 .custom-sidebar-icon {
     margin-right: 10px;
-    color: #00d25b;
+    /* color: #00d25b; */
     font-size: 20px;
-    padding: 5px;
-    border-radius: 50%;
-    background-color: var(--icons-bg);
+    border-radius: 10%;
+    padding: 1px;
 }
 
-.custom-sidebar-icon1 {
-    margin-right: 10px;
-    font-size: 20px;
-    padding: 5px;
-    border-radius: 50%;
-    background-color: var(--icons-bg);
-    color: #179be7;
-}
-
-.custom-sidebar-icon2 {
-    margin-right: 10px;
-    font-size: 20px;
-    padding: 5px;
-    border-radius: 50%;
-    background-color: var(--icons-bg);
-    color: #e86232;
-}
 
 .logout-button {
     width: 100%;

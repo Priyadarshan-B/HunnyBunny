@@ -16,6 +16,8 @@ import { Typography, Avatar, Box } from '@mui/material';
 import { Cookie } from "@mui/icons-material";
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import CryptoJS from "crypto-js";
+import FastfoodIcon from '@mui/icons-material/Fastfood';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 
 const secretKey = "your-secret-key";
 
@@ -92,7 +94,7 @@ function TopBar(props) {
             style={{
                 backgroundColor: "var(--background-1)",
                 display: "flex",
-                padding: "7px 7px",
+                padding: "5px 12px",
                 justifyContent: "space-between",
                 alignItems: "center",
                 gap: 20,
@@ -113,10 +115,11 @@ function TopBar(props) {
                     <div onClick={props.sidebar} className="sidebar-menu">
                         <MenuIcon style={{ color: "#7e57c2", margin: "0px 5px" }} />
                     </div>
-                    <div className="app-name"><b>BAKERY</b></div>
+                    <div className="app-name"> <FastfoodIcon sx={{ color: "orange" }} /><b>  Bakery</b></div>
                 </div>
                 <div className="top-bar-menus">
-                    <CustomizedSwitches />
+                    <p style={{ display: "none" }}><CustomizedSwitches /></p>
+                    <NotificationsActiveOutlinedIcon sx={{ color: "#616773", fontSize: "22px", cursor: "pointer" }} />
                     <div
                         className="box"
                         style={{
@@ -149,6 +152,7 @@ function TopBar(props) {
                         )}
                         <div className="topbar-name">{capitalizedName}</div>
                         <KeyboardArrowDownRoundedIcon />
+
                     </div>
 
                     <Menu

@@ -21,7 +21,7 @@ function AppLayout(props) {
         }}>
             <TopBar sidebar={handleSideBar} />
             <div style={{ height: '100%', display: 'flex' }}>
-                <SideBar open={sidebarState} resource={props.rId} handleSideBar={handleSideBar}/>
+                <SideBar open={sidebarState} resource={props.rId} handleSideBar={handleSideBar} />
                 <div className={"app-body"} style={{ width: '100%' }} >{props.body}</div>
             </div>
         </div>
