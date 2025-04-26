@@ -3,17 +3,17 @@ import apiHost from "../components/utils/api";
 
 
 
-function Scan() {
+function Dashboard() {
     return <Body />;
 }
 
 function Body() {
 
     return (
-        <div className='scan-page'>
-            Scanner Page
+        <div className='dashboard-page'>
+            Dashboard
         </div>
     );
 }
 
-export default Scan;
+export default Dashboard;

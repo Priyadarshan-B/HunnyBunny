@@ -5,12 +5,15 @@ import RecyclingSharpIcon from '@mui/icons-material/RecyclingSharp';
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import HistoryIcon from '@mui/icons-material/History';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 
 function getIconComponent(iconPath, isActive) {
     const iconColor = isActive ? '#ffffff' : '#616773'; // White if active
     switch (iconPath) {
+        case 'DashboardIcon':
+            return <DashboardIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         case 'AutoStoriesIcon':
             return <QrCodeScannerIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         case 'RecyclingSharpIcon':
@@ -24,7 +27,7 @@ function getIconComponent(iconPath, isActive) {
 
 function SideBar(props) {
     const [activeItem, setActiveItem] = useState("");
-    const [sidebarItems, setSidebarItems] = useState([]);
+    const [sidebarSections, setSidebarSections] = useState([]);
     const [userDetailsOpen, setUserDetailsOpen] = useState(false);
     const location = useLocation();
     const sidebarRef = useRef(null);
@@ -34,25 +37,35 @@ function SideBar(props) {
     const displayUsername = dummyUsername.charAt(0).toUpperCase() + dummyUsername.slice(1);
 
     useEffect(() => {
-        const dummySidebarItems = [
-            { path: "/scan", name: "Scan Products", icon_path: "AutoStoriesIcon" },
-            { path: "/history", name: "Order History", icon_path: "RecyclingSharpIcon" },
-            { path: "/dummy", name: "Dummy", icon_path: "ScheduleSendIcon" },
+        const dummySidebarSections = [
+            {
+                heading: "Dashboard",
+                items: [
+                    { path: "/dashboard", name: "Dashboard", icon_path: "DashboardIcon" },
+                    { path: "/scan", name: "Scan Products", icon_path: "AutoStoriesIcon" }
+                ]
+            },
+            {
+                heading: "History",
+                items: [
+                    { path: "/history", name: "Order History", icon_path: "RecyclingSharpIcon" },
+                    { path: "/dummy", name: "Dummy", icon_path: "ScheduleSendIcon" }
+                ]
+            }
         ];
-        setSidebarItems(dummySidebarItems);
+        setSidebarSections(dummySidebarSections);
     }, []);
 
     useEffect(() => {
         const pathname = location.pathname;
-        if (pathname.startsWith("/materials/levels")) {
-            setActiveItem("Subjects");
-        } else {
-            const activeItem = sidebarItems.find(item => item.path === pathname);
-            if (activeItem) {
-                setActiveItem(activeItem.name);
-            }
-        }
-    }, [location, sidebarItems]);
+        sidebarSections.forEach(section => {
+            section.items.forEach(item => {
+                if (pathname.startsWith(item.path)) {
+                    setActiveItem(item.name);
+                }
+            });
+        });
+    }, [location, sidebarSections]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -74,6 +87,7 @@ function SideBar(props) {
 
     return (
         <div ref={sidebarRef} className={props.open ? "app-sidebar sidebar-open" : "app-sidebar"}>
+            {/* USER SECTION */}
             <div
                 style={{
                     border: "1px solid #222632",
@@ -97,7 +111,6 @@ function SideBar(props) {
                     </div>
                 </div>
 
-                {/* USER DETAILS SECTION */}
                 {userDetailsOpen && (
                     <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "#bbb" }}>
                         <hr color="#222632" />
@@ -108,24 +121,29 @@ function SideBar(props) {
                 )}
             </div>
 
-            <p style={{ paddingTop: "10px", color: "gray", fontSize: "14px", fontWeight: "bold" }}>General</p>
-            <ul className="list-div">
-                {sidebarItems.map(item => {
-                    const isActive = location.pathname.startsWith(item.path) || (item.path === "/materials/subjects" && location.pathname.startsWith("/materials/levels"));
-                    return (
-                        <li
-                            key={item.path}
-                            className={`list-items ${isActive ? "active" : ""}`}
-                            onClick={() => { setActiveItem(item.name); props.handleSideBar(); }}
-                        >
-                            <Link className="link" to={item.path}>
-                                {getIconComponent(item.icon_path, isActive)}
-                                <p className="menu-names">{item.name}</p>
-                            </Link>
-                        </li>
-                    );
-                })}
-            </ul>
+            {/* SIDEBAR SECTIONS */}
+            {sidebarSections.map((section, index) => (
+                <div key={index}>
+                    <p style={{ paddingTop: "15px", color: "gray", fontSize: "14px", fontWeight: "bold" }}>{section.heading}</p>
+                    <ul className="list-div">
+                        {section.items.map(item => {
+                            const isActive = location.pathname.startsWith(item.path);
+                            return (
+                                <li
+                                    key={item.path}
+                                    className={`list-items ${isActive ? "active" : ""}`}
+                                    onClick={() => { setActiveItem(item.name); props.handleSideBar(); }}
+                                >
+                                    <Link className="link" to={item.path}>
+                                        {getIconComponent(item.icon_path, isActive)}
+                                        <p className="menu-names">{item.name}</p>
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            ))}
         </div>
     );
 }

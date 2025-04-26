@@ -3,17 +3,17 @@ import apiHost from "../components/utils/api";
 
 
 
-function Scan() {
+function History() {
     return <Body />;
 }
 
 function Body() {
 
     return (
-        <div className='scan-page'>
-            Scanner Page
+        <div className='history-page'>
+            History
         </div>
     );
 }
 
-export default Scan;
+export default History;
