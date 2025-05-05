@@ -288,7 +288,7 @@ function TopBar(props) {
                 aria-labelledby="customized-dialog-title"
                 open={notificationDialogOpen}
             >
-                <div style={{backgroundColor: "var(--background-1)", color: "var(--text)"}}>
+                <div style={{ backgroundColor: "var(--background-1)", color: "var(--text)" }}>
                     <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
                         Notifications
                     </DialogTitle>

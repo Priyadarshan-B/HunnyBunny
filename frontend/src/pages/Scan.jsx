@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiHost from "../components/utils/api";
+import QRScanner from '../components/QRScanner';
+
 
 
 
@@ -11,7 +13,7 @@ function Body() {
 
     return (
         <div className='scan-page'>
-            Scanner Page
+            <QRScanner />
         </div>
     );
 }

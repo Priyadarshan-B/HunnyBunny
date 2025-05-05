@@ -11,7 +11,8 @@ function Body() {
 
     return (
         <div className='dashboard-page'>
-            Dashboard
+                dashboard
+
         </div>
     );
 }
