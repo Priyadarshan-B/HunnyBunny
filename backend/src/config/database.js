@@ -1,10 +1,8 @@
 const dotenv = require('dotenv');
 const mysql = require('mysql2/promise');
 
-// Load environment variables from .env file
 dotenv.config();
 
-// Database configuration
 const dbConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -15,42 +13,22 @@ const dbConfig = {
     queueLimit: 0,
 };
 
-// Create a connection pool
-let pool;
+let poolPromise;
 
-const createPool = async () => {
+const createPoolAndTest = async () => {
     try {
-        pool = mysql.createPool(dbConfig);
+        const pool = mysql.createPool(dbConfig);
         console.log('Database connection pool created successfully.');
-    } catch (error) {
-        console.error('Error creating database connection pool:', error);
-        process.exit(1); // Exit process with failure
-    }
-};
-
-// Test database connection
-const testConnection = async () => {
-    try {
         const connection = await pool.getConnection();
         console.log('Database connection has been established successfully.');
-        connection.release(); // Release the connection back to the pool
+        connection.release();
+        return pool;
     } catch (error) {
-        console.error('Unable to connect to the database:', error);
-        await reconnect(); // Attempt to reconnect
+        console.error('Error creating or testing database connection pool:', error);
+        process.exit(1);
     }
 };
 
-// Reconnection logic
-const reconnect = async () => {
-    console.log('Attempting to reconnect to the database...');
-    await createPool();
-    await testConnection();
-};
+poolPromise = createPoolAndTest();
 
-// Initialize the database connection
-(async () => {
-    await createPool();
-    await testConnection();
-})();
-
-module.exports = pool;
+module.exports = poolPromise;
