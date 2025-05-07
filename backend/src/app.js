@@ -2,7 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
+const path = require("path");
 const http = require('http');
 const morgan = require('morgan');
 const routes = require('./routes/routes');
@@ -22,6 +23,7 @@ app.use(bodyParser.json());
 app.use(morgan('dev'));
 
 // routes
+app.use("/public", express.static(path.join(__dirname, "public")));
 app.use(routes)
 
 

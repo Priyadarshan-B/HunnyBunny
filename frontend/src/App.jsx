@@ -2,10 +2,11 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-ro
 import { useState, useEffect } from 'react';
 import AppLayout from "./components/appLayout/Layout";
 import Scan from "./pages/Scan";
-import Login from "./pages/login/Login";
+import Login from "./pages/login/login";
 import Dashboard from "./pages/Dashboard";
 import QRForm from "./pages/qrCode/qrCode";
 import History from "./pages/History";
+import Products from "./pages/products/products";
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/dashboard" element={<AppLayout body={<Dashboard />} />} />
         <Route path="/history" element={<AppLayout body={<History />} />} />
         <Route path="/qr" element={<AppLayout body={<QRForm />} />} />
+        <Route path="/products" element={<AppLayout body={<Products />} />} />
         <Route path="/login" element={<Login />} />
 
         <Route path="*" element={<div>404 - Page Not Found</div>} />

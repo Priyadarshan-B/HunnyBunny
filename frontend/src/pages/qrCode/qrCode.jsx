@@ -93,7 +93,7 @@ export default function QRForm() {
           <InputNumber min={1} className="w-full" />
         </Form.Item>
 
-        <div className="flex  gap-4">
+        <div className="flex gap-4">
           <Button type="default" onClick={handleGenerateQR} className="flex-1">
             Generate QR
           </Button>
