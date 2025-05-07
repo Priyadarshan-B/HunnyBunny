@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Layout.css";
+import requestApi from "../utils/axios";
 import { Link, useLocation } from "react-router-dom";
 import RecyclingSharpIcon from '@mui/icons-material/RecyclingSharp';
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
@@ -10,7 +11,7 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 
 function getIconComponent(iconPath, isActive) {
-    const iconColor = isActive ? '#ffffff' : '#616773'; // White if active
+    const iconColor = isActive ? '#ffffff' : '#616773'; 
     switch (iconPath) {
         case 'DashboardIcon':
             return <DashboardIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
@@ -36,35 +37,29 @@ function SideBar(props) {
     const firstLetter = dummyUsername.charAt(0).toUpperCase();
     const displayUsername = dummyUsername.charAt(0).toUpperCase() + dummyUsername.slice(1);
 
+
+    const fetchSidebarSections = async () => {
+        let role = 2;
+        try {
+            const data = await requestApi("POST", "/auth/resources", { role:role });
+            console.log("Sidebar sections data:", data.data);
+            setSidebarSections(data.data);
+        } catch (error) {
+            console.error("Error fetching sidebar sections:", error);
+        }
+    };
+
     useEffect(() => {
-        const dummySidebarSections = [
-            {
-                heading: "Dashboard",
-                items: [
-                    { path: "/dashboard", name: "Dashboard", icon_path: "DashboardIcon" },
-                    { path: "/scan", name: "Scan Products", icon_path: "AutoStoriesIcon" }
-                ]
-            },
-            {
-                heading: "History",
-                items: [
-                    { path: "/history", name: "Order History", icon_path: "RecyclingSharpIcon" },
-                    { path: "/dummy", name: "Dummy", icon_path: "ScheduleSendIcon" }
-                ]
-            }
-        ];
-        setSidebarSections(dummySidebarSections);
-    }, []);
+        fetchSidebarSections();
+    },[]);
 
     useEffect(() => {
         const pathname = location.pathname;
-        sidebarSections.forEach(section => {
-            section.items.forEach(item => {
+            sidebarSections.forEach(item => {
                 if (pathname.startsWith(item.path)) {
                     setActiveItem(item.name);
                 }
             });
-        });
     }, [location, sidebarSections]);
 
     useEffect(() => {
@@ -121,12 +116,10 @@ function SideBar(props) {
                 )}
             </div>
 
-            {/* SIDEBAR SECTIONS */}
-            {sidebarSections.map((section, index) => (
-                <div key={index}>
-                    <p style={{ paddingTop: "15px", color: "gray", fontSize: "14px", fontWeight: "bold" }}>{section.heading}</p>
+           
+                    <div>
                     <ul className="list-div">
-                        {section.items.map(item => {
+                        {sidebarSections.map((item) => {
                             const isActive = location.pathname.startsWith(item.path);
                             return (
                                 <li
@@ -135,7 +128,7 @@ function SideBar(props) {
                                     onClick={() => { setActiveItem(item.name); props.handleSideBar(); }}
                                 >
                                     <Link className="link" to={item.path}>
-                                        {getIconComponent(item.icon_path, isActive)}
+                                        {getIconComponent(item.icon, isActive)}
                                         <p className="menu-names">{item.name}</p>
                                     </Link>
                                 </li>
@@ -143,7 +136,6 @@ function SideBar(props) {
                         })}
                     </ul>
                 </div>
-            ))}
         </div>
     );
 }
