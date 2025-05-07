@@ -1,80 +1,94 @@
 import React, { useState } from "react";
 import "./Login.css";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import { Input, Button, Form, message } from "antd";
 import CustomizedSwitches from "../../components/appLayout/toggleTheme";
 import image from "../../assets/image.png";
+import requestApi from "../../components/utils/axios";
 
 function Login() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Username:", username);
-        console.log("Password:", password);
+  const onFinish = async (values) => {
+    setLoading(true);
+    const { username, password } = values;
 
-        // Uncomment when backend ready:
-        /*
-        fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error(error));
-        */
-    };
+    const response = await requestApi("POST", "/auth/login", {
+      username,
+      password,
+    });
 
-    return (
-        <div className="login-container">
-            <p><CustomizedSwitches/></p>
-            <div className="overlay"></div>
-            <div className="login-card">
-                <div className="card-image-section">
-                    <img
-                        src={image}
-                        alt="Bakery inside"
-                        className="card-image"
-                    />
-                </div>
-                <div className="card-form-section">
-                    <h2>Bakery Bliss Login</h2>
-                    <p>Freshness at your fingertips!</p>
-                    <form onSubmit={handleSubmit} className="login-form">
-                        <div className="input-group">
-                            <input
-                                type="text"
-                                placeholder="Username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="input-group password-group">
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <div 
-                                className="toggle-password" 
-                                onClick={() => setShowPassword(prev => !prev)}
-                            >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                            </div>
-                        </div>
-                        <button type="submit" className="login-btn">Login</button>
-                    </form>
-                </div>
-            </div>
+    if (response.success) {
+      message.success("Login successful!");
+      localStorage.setItem("D!", response.data.token);
+        navigate("/dashboard"); 
+    } else {
+      message.error(response.error?.message || "Login failed");
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="login-container">
+      <p>
+        <CustomizedSwitches />
+      </p>
+      <div className="overlay"></div>
+      <div className="login-card">
+        <div className="card-image-section">
+          <img src={image} alt="Bakery inside" className="card-image" />
         </div>
-    );
+        <div className="card-form-section">
+          <h2>Bakery Bliss Login</h2>
+          <p>Freshness at your fingertips!</p>
+          <Form
+            name="login-form"
+            onFinish={onFinish}
+            // className="login-form"
+            layout="vertical"
+          >
+            <Form.Item
+              name="username"
+              rules={[{ required: true, message: "Please input your username!" }]}
+            >
+              <Input placeholder="Username" />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: "Please input your password!" }]}
+            >
+              <Input.Password
+                placeholder="Password"
+                visibilityToggle={{
+                  visible: passwordVisible,
+                  onVisibleChange: setPasswordVisible,
+                }}
+                iconRender={(visible) =>
+                  visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                }
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                className="login-btn"
+              >
+                Login
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Login;
