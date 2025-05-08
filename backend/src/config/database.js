@@ -13,6 +13,7 @@ const dbConfig = {
     queueLimit: 0,
 };
 
+
 let poolPromise;
 
 const createPoolAndTest = async () => {

@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Input, InputNumber, Button, Form, message } from "antd";
 import axios from "axios";
 import { QRCodeCanvas } from "qrcode.react";
+import "./qrCode.css";
 
 export default function QRForm() {
   const [form] = Form.useForm();
@@ -16,7 +17,7 @@ export default function QRForm() {
     try {
       const values = await form.validateFields();
       const productId = values.product_id;
-      setQrId(productId); 
+      setQrId(productId);
       setShowQR(true);
       setIsQRGenerated(true);
     } catch {
@@ -61,13 +62,13 @@ export default function QRForm() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 shadow-xl rounded-2xl bg-white space-y-6">
+    <div className="max-w-xl mx-auto p-6 shadow-xl rounded-l bg-white space-y-6 [background-color:var(--background-1)]">
       <h2 className="text-2xl font-semibold text-center">Add Bakery Product</h2>
 
       <Form form={form} layout="vertical">
         <Form.Item
           name="product_id"
-          label="Product ID"
+          label={<span className="custom-label">Product ID</span>}
           rules={[{ required: true }]}
         >
           <Input placeholder="Enter unique Product ID" />
@@ -75,19 +76,19 @@ export default function QRForm() {
 
         <Form.Item
           name="name"
-          label="Product Name"
+          label={<span className="custom-label">Product Name</span>}
           rules={[{ required: true }]}
         >
           <Input placeholder="e.g. Cinnamon Roll" />
         </Form.Item>
 
-        <Form.Item name="price" label="Price" rules={[{ required: true }]}>
+        <Form.Item name="price" label={<span className="custom-label">Price</span>} rules={[{ required: true }]}>
           <InputNumber min={0} step={0.01} className="w-full" prefix="₹" />
         </Form.Item>
 
         <Form.Item
           name="quantity"
-          label="Quantity"
+          label={<span className="custom-label">Quantity</span>}
           rules={[{ required: true }]}
         >
           <InputNumber min={1} className="w-full" />
@@ -97,7 +98,7 @@ export default function QRForm() {
           <Button type="default" onClick={handleGenerateQR} className="flex-1">
             Generate QR
           </Button>
-          
+
           <Button
             type="primary"
             onClick={handleSubmit}

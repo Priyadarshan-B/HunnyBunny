@@ -1,0 +1,12 @@
+.custom-card {
+    background-color: var(--background-1) !important;
+    border: 2px solid #222632;
+    color: var(--text);
+}
+
+.custom-card .ant-card-actions {
+    background-color: var(--background-1) !important;
+    border: 2px solid #222632;
+    color: var(--text);
+}
+

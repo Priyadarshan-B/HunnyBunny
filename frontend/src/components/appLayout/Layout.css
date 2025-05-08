@@ -119,10 +119,10 @@ p {
 }
 
 .link:hover {
-    background-color: var(--menu-hover);
+    background-color: #635bff7b;
 }
 
-.link:hover .custom-sidebar-icon{
+.link:hover .custom-sidebar-icon {
     /* background-color: white; */
 }
 

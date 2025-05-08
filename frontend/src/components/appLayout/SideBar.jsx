@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./Layout.css";
 import requestApi from "../utils/axios";
 import { Link, useLocation } from "react-router-dom";
-import RecyclingSharpIcon from '@mui/icons-material/RecyclingSharp';
+import { jwtDecode } from "jwt-decode";
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import HistoryIcon from '@mui/icons-material/History';
@@ -11,13 +11,13 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 
 function getIconComponent(iconPath, isActive) {
-    const iconColor = isActive ? '#ffffff' : '#616773'; 
+    const iconColor = isActive ? '#ffffff' : '#616773';
     switch (iconPath) {
         case 'DashboardIcon':
             return <DashboardIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
-        case 'AutoStoriesIcon':
+        case 'QrCodeScannerIcon':
             return <QrCodeScannerIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
-        case 'RecyclingSharpIcon':
+        case 'HistoryIcon':
             return <HistoryIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         case 'ScheduleSendIcon':
             return <ScheduleSendIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
@@ -30,18 +30,27 @@ function SideBar(props) {
     const [activeItem, setActiveItem] = useState("");
     const [sidebarSections, setSidebarSections] = useState([]);
     const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+    const [userInfo, setUserInfo] = useState({});
     const location = useLocation();
     const sidebarRef = useRef(null);
 
-    const dummyUsername = "jothshana";
-    const firstLetter = dummyUsername.charAt(0).toUpperCase();
-    const displayUsername = dummyUsername.charAt(0).toUpperCase() + dummyUsername.slice(1);
-
+    // Decode JWT from localStorage
+    useEffect(() => {
+        const token = localStorage.getItem("D!"); // Adjust the key if needed
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserInfo(decoded);
+            } catch (error) {
+                console.error("Invalid token:", error);
+            }
+        }
+    }, []);
 
     const fetchSidebarSections = async () => {
-        let role = 2;
         try {
-            const data = await requestApi("POST", "/auth/resources", { role:role });
+            const role = userInfo?.role || 2;
+            const data = await requestApi("POST", "/auth/resources", { role });
             console.log("Sidebar sections data:", data.data);
             setSidebarSections(data.data);
         } catch (error) {
@@ -50,16 +59,18 @@ function SideBar(props) {
     };
 
     useEffect(() => {
-        fetchSidebarSections();
-    },[]);
+        if (userInfo?.role) {
+            fetchSidebarSections();
+        }
+    }, [userInfo]);
 
     useEffect(() => {
         const pathname = location.pathname;
-            sidebarSections.forEach(item => {
-                if (pathname.startsWith(item.path)) {
-                    setActiveItem(item.name);
-                }
-            });
+        sidebarSections.forEach(item => {
+            if (pathname.startsWith(item.path)) {
+                setActiveItem(item.name);
+            }
+        });
     }, [location, sidebarSections]);
 
     useEffect(() => {
@@ -79,6 +90,9 @@ function SideBar(props) {
     const toggleUserDetails = () => {
         setUserDetailsOpen(prev => !prev);
     };
+
+    const firstLetter = userInfo?.name?.charAt(0)?.toUpperCase() || "";
+    const displayUsername = userInfo?.name || "User";
 
     return (
         <div ref={sidebarRef} className={props.open ? "app-sidebar sidebar-open" : "app-sidebar"}>
@@ -109,33 +123,36 @@ function SideBar(props) {
                 {userDetailsOpen && (
                     <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "#bbb" }}>
                         <hr color="#222632" />
-                        <p><b>Email :</b> username@example.com</p>
-                        <p><b>Role :</b> Admin</p>
-                        <p><b>Location :</b> Chennai</p>
+                        <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
+                        <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>
+                        <p><b>Location :</b> Chennai</p> {/* Customize if token includes location */}
                     </div>
                 )}
             </div>
 
-           
-                    <div>
-                    <ul className="list-div">
-                        {sidebarSections.map((item) => {
-                            const isActive = location.pathname.startsWith(item.path);
-                            return (
-                                <li
-                                    key={item.path}
-                                    className={`list-items ${isActive ? "active" : ""}`}
-                                    onClick={() => { setActiveItem(item.name); props.handleSideBar(); }}
-                                >
-                                    <Link className="link" to={item.path}>
-                                        {getIconComponent(item.icon, isActive)}
-                                        <p className="menu-names">{item.name}</p>
-                                    </Link>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
+            {/* SIDEBAR MENU */}
+            <div>
+                <ul className="list-div">
+                    {sidebarSections.map((item) => {
+                        const isActive = location.pathname.startsWith(item.path);
+                        return (
+                            <li
+                                key={item.path}
+                                className={`list-items ${isActive ? "active" : ""}`}
+                                onClick={() => {
+                                    setActiveItem(item.name);
+                                    props.handleSideBar();
+                                }}
+                            >
+                                <Link className="link" to={item.path}>
+                                    {getIconComponent(item.icon, isActive)}
+                                    <p className="menu-names">{item.name}</p>
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </div>
         </div>
     );
 }

@@ -6,9 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import QRForm from "./pages/qrCode/qrCode";
 import History from "./pages/History";
 import Products from "./pages/products/products";
-import loginPage from "./pages/loginPage/loginPage"
-
-
+import Login from "./pages/loginPage/loginPage";
 function App() {
   return (
     <BrowserRouter>
@@ -19,7 +17,7 @@ function App() {
         <Route path="/history" element={<AppLayout body={<History />} />} />
         <Route path="/qr" element={<AppLayout body={<QRForm />} />} />
         <Route path="/products" element={<AppLayout body={<Products />} />} />
-        <Route path="/login" element={<loginPage />} />
+        <Route path="/login" element={<Login />} />
 
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
