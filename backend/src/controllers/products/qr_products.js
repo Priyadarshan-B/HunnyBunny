@@ -35,13 +35,33 @@ exports.post_qr_products = async (req, res) => {
     }
   };
 
-exports.get_qr_products = async (req, res) => {
-  try {
-    const query = `SELECT id, product_code,product_name,product_price, product_quantity, qr_code FROM qr_products WHERE status = ?`;
-    const params = ['1'];
-    const result = await get_database(query, params);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch products" });
-  }
-};
+  exports.get_qr_products = async (req, res) => {
+    try {
+      const { term } = req.query;
+      let query = `
+        SELECT id, product_code, product_name, product_price, product_quantity, qr_code 
+        FROM qr_products 
+        WHERE status = ?
+      `;
+      const params = ['1'];
+  
+      if (term) {
+        query += `
+          AND (
+            LOWER(product_name) LIKE LOWER(?) 
+            OR LOWER(product_code) LIKE LOWER(?)
+          )
+        `;
+        const likeTerm = `%${term.toLowerCase()}%`;
+        params.push(likeTerm, likeTerm);
+      }
+  
+      const result = await get_database(query, params);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("DB Error:", error);  
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
+  };
+  
+

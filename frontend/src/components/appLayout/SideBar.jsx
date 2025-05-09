@@ -51,7 +51,7 @@ function SideBar(props) {
         try {
             const role = userInfo?.role || 2;
             const data = await requestApi("POST", "/auth/resources", { role });
-            console.log("Sidebar sections data:", data.data);
+            // console.log("Sidebar sections data:", data.data);
             setSidebarSections(data.data);
         } catch (error) {
             console.error("Error fetching sidebar sections:", error);
