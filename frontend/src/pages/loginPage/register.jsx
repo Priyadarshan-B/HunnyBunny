@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./loginPage.css";
 import { useNavigate } from "react-router-dom";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
@@ -13,7 +13,20 @@ const { Option } = Select;
 function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            const response = await requestApi("GET", "/auth/roles");
+            if (response.success) {
+                setRoles(response.data); 
+            } else {
+                message.error("Failed to load roles");
+            }
+        };
+        fetchRoles();
+    }, []);
 
     const onFinish = async (values) => {
         setLoading(true);
@@ -23,7 +36,7 @@ function Register() {
             username,
             email,
             password,
-            role,
+            role, 
         });
 
         if (response.success) {
@@ -51,11 +64,7 @@ function Register() {
                         <img className="hunnybunny" src={hunnybunny} alt="" />
                         <p>Freshness at your fingertips!</p>
                     </center>
-                    <Form
-                        name="register-form"
-                        onFinish={onFinish}
-                        layout="vertical"
-                    >
+                    <Form name="register-form" onFinish={onFinish} layout="vertical">
                         <Form.Item
                             name="username"
                             rules={[{ required: true, message: "Please input your username!" }]}
@@ -78,8 +87,11 @@ function Register() {
                             rules={[{ required: true, message: "Please select your role!" }]}
                         >
                             <Select placeholder="Select Role">
-                                <Option value="admin">Admin</Option>
-                                <Option value="user">User</Option>
+                                {roles.map((role) => (
+                                    <Option key={role.id} value={role.id}>
+                                        {role.role}
+                                    </Option>
+                                ))}
                             </Select>
                         </Form.Item>
 
