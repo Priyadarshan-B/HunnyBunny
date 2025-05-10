@@ -71,7 +71,7 @@ export default function QRForm() {
           label={<span className="custom-label">Product ID</span>}
           rules={[{ required: true }]}
         >
-          <Input placeholder="Enter unique Product ID" />
+          <Input style={{ backgroundColor: "var(--document)", color: "var(--text)" }} placeholder="Enter unique Product ID" />
         </Form.Item>
 
         <Form.Item
@@ -79,11 +79,11 @@ export default function QRForm() {
           label={<span className="custom-label">Product Name</span>}
           rules={[{ required: true }]}
         >
-          <Input placeholder="e.g. Cinnamon Roll" />
+          <Input style={{ backgroundColor: "var(--document)", color: "var(--text)" }} placeholder="e.g. Cinnamon Roll" />
         </Form.Item>
 
         <Form.Item name="price" label={<span className="custom-label">Price</span>} rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} className="w-full" prefix="₹" />
+          <InputNumber style={{ backgroundColor: "var(--document)", color: "var(--text)" }} min={0} step={0.01} className="w-full" prefix="₹" />
         </Form.Item>
 
         <Form.Item
@@ -91,15 +91,16 @@ export default function QRForm() {
           label={<span className="custom-label">Quantity</span>}
           rules={[{ required: true }]}
         >
-          <InputNumber min={1} className="w-full" />
+          <InputNumber style={{ backgroundColor: "var(--document)", color: "var(--text)" }} min={1} className="w-full" />
         </Form.Item>
 
         <div className="flex gap-4">
-          <Button type="default" onClick={handleGenerateQR} className="flex-1">
+          <Button style={{ backgroundColor: "#635bff", color: "var(--text)", border: "none" }} type="default" onClick={handleGenerateQR} className="flex-1">
             Generate QR
           </Button>
 
           <Button
+            style={{ backgroundColor: "green", color: "var(--text)", border: "none" }}
             type="primary"
             onClick={handleSubmit}
             loading={loading}

@@ -16,6 +16,7 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import PrintIcon from '@mui/icons-material/Print';
 import dayjs from "dayjs";
 import requestApi from "../../components/utils/axios";
 import apiHost from "../../components/utils/api";
@@ -37,7 +38,7 @@ const Products = () => {
       setLoading(true);
       const res = await requestApi("GET", `/products/qr_products?term=${term}`);
       setProducts(res.data);
-  
+
       const initialStates = {};
       res.data.forEach((prod) => {
         initialStates[prod.id] = { pkd: null, exp: null, editing: false };
@@ -55,7 +56,7 @@ const Products = () => {
   }, []);
 
   const debouncedSearch = useCallback(
-     debounce((value) => fetchProducts(value), 300),
+    debounce((value) => fetchProducts(value), 300),
     []
   );
 
@@ -116,16 +117,16 @@ const Products = () => {
   return (
     <div>
       <Input
-          prefix={<SearchOutlined />}
-          placeholder="Search by name or code"
-          allowClear
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{ marginBottom: 24, width: 400 }}
-        />
+        prefix={<SearchOutlined />}
+        placeholder="Search by name or code"
+        allowClear
+        value={searchTerm}
+        onChange={handleSearch}
+        style={{ marginBottom: 24, width: 400, backgroundColor: "var(--background-1)", border: "1px solid var(--border-color)", color: "var(--text)", color: "var(--text)", borderRadius: "5px" }}
+      />
       <>
-        
-        {products.length >0?<div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+
+        {products.length > 0 ? <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
           {products.map((product) => {
             const state = editStates[product.id] || {};
             return (
@@ -136,6 +137,7 @@ const Products = () => {
                 actions={[
                   state.editing ? (
                     <Popconfirm
+                      style={{ color: "#4bf478", fontSize: "20px" }}
                       title="Save changes?"
                       onConfirm={() => handleSave(product.id)}
                     >
@@ -157,6 +159,7 @@ const Products = () => {
                   ) : (
                     <Popconfirm
                       title="Delete dates?"
+                      style={{ color: "#b20900", fontSize: "20px" }}
                       onConfirm={() => handleDelete(product.id)}
                     >
                       <DeleteOutlined
@@ -168,7 +171,7 @@ const Products = () => {
                 ]}
               >
                 <Button
-                  icon={<PlusOutlined />}
+                  icon={<PrintIcon style={{ color: "#616773" }} />}
                   type="text"
                   shape="circle"
                   style={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
@@ -235,12 +238,12 @@ const Products = () => {
             );
           })}
         </div>
-        :
-        <div>
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <h2>No products found</h2>
+          :
+          <div>
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <h2>No products found</h2>
+            </div>
           </div>
-        </div>
         }
 
         {/* sticker modal */}

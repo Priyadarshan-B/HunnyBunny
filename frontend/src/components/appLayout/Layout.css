@@ -13,7 +13,7 @@
 }
 
 .menu-names {
-    transition: all 10s ease-in;
+    transition: all 0.1s ease-in;
     font-weight: var(--f-weight);
 }
 
