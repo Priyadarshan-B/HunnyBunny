@@ -16,6 +16,7 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import PrintIcon from '@mui/icons-material/Print';
 import dayjs from "dayjs";
 import requestApi from "../../components/utils/axios";
 import apiHost from "../../components/utils/api";
@@ -119,142 +120,140 @@ const Products = () => {
         allowClear
         value={searchTerm}
         onChange={handleSearch}
-        style={{ marginBottom: 24, width: 400 }}
+        style={{ marginBottom: 24, width: 400, backgroundColor: "var(--background-1)", border: "1px solid var(--border-color)", color: "var(--text)", color: "var(--text)", borderRadius: "5px" }}
       />
-  
-      {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-          <Spin size="large" />
-        </div>
-      ) : (
-        <>
-          {products.length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-              {products.map((product) => {
-                const state = editStates[product.id] || {};
-                return (
-                  <Card
-                    key={product.id}
-                    className="custom-card"
-                    style={{ width: 400 }}
-                    actions={[
-                      state.editing ? (
-                        <Popconfirm
-                          title="Save changes?"
-                          onConfirm={() => handleSave(product.id)}
-                        >
-                          <SaveOutlined key="save" />
-                        </Popconfirm>
-                      ) : (
-                        <EditOutlined
-                          style={{ color: "#4bf478", fontSize: "20px" }}
-                          onClick={() => handleEdit(product.id)}
-                        />
-                      ),
-                      state.editing ? (
-                        <Popconfirm
-                          title="Discard changes?"
-                          onConfirm={() => handleCancel(product.id)}
-                        >
-                          <CloseOutlined key="cancel" />
-                        </Popconfirm>
-                      ) : (
-                        <Popconfirm
-                          title="Delete dates?"
-                          onConfirm={() => handleDelete(product.id)}
-                        >
-                          <DeleteOutlined
-                            style={{ color: "#b20900", fontSize: "20px" }}
-                            key="delete"
-                          />
-                        </Popconfirm>
-                      ),
-                    ]}
-                  >
-                    <Button
-                      icon={<PlusOutlined />}
-                      type="text"
-                      shape="circle"
-                      style={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
-                      onClick={() => openStickerModal(product)}
+      <>
+
+        {products.length > 0 ? <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+          {products.map((product) => {
+            const state = editStates[product.id] || {};
+            return (
+              <Card
+                key={product.id}
+                className="custom-card"
+                style={{ width: 400 }}
+                actions={[
+                  state.editing ? (
+                    <Popconfirm
+                      style={{ color: "#4bf478", fontSize: "20px" }}
+                      title="Save changes?"
+                      onConfirm={() => handleSave(product.id)}
+                    >
+                      <SaveOutlined key="save" />
+                    </Popconfirm>
+                  ) : (
+                    <EditOutlined
+                      style={{ color: "#4bf478", fontSize: "20px" }}
+                      onClick={() => handleEdit(product.id)}
                     />
-                    <div className="flex gap-10">
-                      <div className="flex flex-1 flex-col items-center">
-                        <img
-                          src={`${apiHost}/public/${product.qr_code}`}
-                          alt="QR code"
-                          className="w-24 h-24 object-contain bg-white p-1"
+                  ),
+                  state.editing ? (
+                    <Popconfirm
+                      title="Discard changes?"
+                      onConfirm={() => handleCancel(product.id)}
+                    >
+                      <CloseOutlined key="cancel" />
+                    </Popconfirm>
+                  ) : (
+                    <Popconfirm
+                      title="Delete dates?"
+                      style={{ color: "#b20900", fontSize: "20px" }}
+                      onConfirm={() => handleDelete(product.id)}
+                    >
+                      <DeleteOutlined
+                        style={{ color: "#b20900", fontSize: "20px" }}
+                        key="delete"
+                      />
+                    </Popconfirm>
+                  ),
+                ]}
+              >
+                <Button
+                  icon={<PrintIcon style={{ color: "#616773" }} />}
+                  type="text"
+                  shape="circle"
+                  style={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
+                  onClick={(e) => {
+                    // if (["svg", "path", "SPAN"].includes(e.target.tagName)) return;
+                    openStickerModal(product);
+                  }}
+                />
+                <div className="flex gap-10">
+                  <div className="flex flex-1 flex-col items-center">
+                    <img
+                      src={`${apiHost}/public/${product.qr_code}`}
+                      alt="QR code"
+                      className="w-24 h-24 object-contain bg-white p-1"
+                    />
+                    <p className="text-sm font-semibold mt-2">
+                      {product.product_code}
+                    </p>
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between w-full">
+                    <p className="text-lg font-semibold">
+                      {product.product_name}
+                    </p>
+                    <p>₹ {product.product_price}</p>
+                    <p>
+                      <b>Qty:</b> {product.product_quantity} gm
+                    </p>
+                    {state.editing ? (
+                      <>
+                        <DatePicker
+                          placeholder="Packed Date"
+                          onChange={(d, ds) =>
+                            handleDateChange(product.id, "pkd", d, ds)
+                          }
+                          className="mb-2"
+                          format="DD-MM-YYYY"
+                          style={{ width: "100%" }}
                         />
-                        <p className="text-sm font-semibold mt-2">
-                          {product.product_code}
-                        </p>
-                      </div>
-                      <div className="flex flex-1 flex-col justify-between w-full">
-                        <p className="text-lg font-semibold">
-                          {product.product_name}
-                        </p>
-                        <p>₹ {product.product_price}</p>
+                        <DatePicker
+                          placeholder="Expiry Date"
+                          onChange={(d, ds) =>
+                            handleDateChange(product.id, "exp", d, ds)
+                          }
+                          format="DD-MM-YYYY"
+                          minDate={
+                            state.pkd ? dayjs(state.pkd, "DD-MM-YYYY") : null
+                          }
+                          style={{ width: "100%" }}
+                        />
+                      </>
+                    ) : (
+                      <>
                         <p>
-                          <b>Qty:</b> {product.product_quantity} gm
+                          <b>pkd:</b> {state.pkd || "--"}
                         </p>
-                        {state.editing ? (
-                          <>
-                            <DatePicker
-                              placeholder="Packed Date"
-                              onChange={(d, ds) =>
-                                handleDateChange(product.id, "pkd", d, ds)
-                              }
-                              className="mb-2"
-                              format="DD-MM-YYYY"
-                              style={{ width: "100%" }}
-                            />
-                            <DatePicker
-                              placeholder="Expiry Date"
-                              onChange={(d, ds) =>
-                                handleDateChange(product.id, "exp", d, ds)
-                              }
-                              format="DD-MM-YYYY"
-                              minDate={
-                                state.pkd
-                                  ? dayjs(state.pkd, "DD-MM-YYYY")
-                                  : null
-                              }
-                              style={{ width: "100%" }}
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <p>
-                              <b>pkd:</b> {state.pkd || "--"}
-                            </p>
-                            <p>
-                              <b>exp:</b> {state.exp || "--"}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          ) : (
+                        <p>
+                          <b>exp:</b> {state.exp || "--"}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+          :
+          <div>
             <div style={{ textAlign: "center", marginTop: "20px" }}>
               <h2>No products found</h2>
             </div>
-          )}
-  
-          {/* sticker modal */}
-          <StickerModal
-            visible={modalVisible}
-            product={selectedProduct}
-            onClose={() => setModalVisible(false)}
-            stickerCount={stickerCount}
-            setStickerCount={setStickerCount}
-            editStates={editStates}
-          />
-        </>
-      )}
+          </div>
+        }
+
+        {/* sticker modal */}
+        <StickerModal
+          visible={modalVisible}
+          product={selectedProduct}
+          onClose={() => setModalVisible(false)}
+          stickerCount={stickerCount}
+          setStickerCount={setStickerCount}
+          editStates={editStates}
+        />
+      </>
     </div>
   );  
 };

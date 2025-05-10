@@ -99,13 +99,14 @@ function SideBar(props) {
             {/* USER SECTION */}
             <div
                 style={{
-                    border: "1px solid #222632",
+                    border: "1px solid var(--border-color)",
                     marginTop: "15px",
                     padding: "7px",
                     borderRadius: "5px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "10px"
+                    gap: "10px",
+                    backgroundColor: "var(--document)",
                 }}
             >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -119,13 +120,15 @@ function SideBar(props) {
                         {userDetailsOpen ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
                     </div>
                 </div>
-
+                
                 {userDetailsOpen && (
-                    <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "#bbb" }}>
-                        <hr color="#222632" />
-                        <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
-                        <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>
-                        <p><b>Location :</b> Chennai</p> {/* Customize if token includes location */}
+                    <div>
+                        <hr style={{color:"red"}}/>
+                        <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "var(--text)" }}>
+                            <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
+                            <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>
+                            <p><b>Location :</b> Chennai</p> {/* Customize if token includes location */}
+                        </div>
                     </div>
                 )}
             </div>

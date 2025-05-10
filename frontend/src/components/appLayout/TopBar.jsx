@@ -17,6 +17,8 @@ import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsAc
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { jwtDecode } from "jwt-decode";
 import image from "../../assets/image.png";
+import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
+
 
 // Styled Dialog
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -33,7 +35,7 @@ function TopBar(props) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
-    const [userData, setUserData] = useState({ name: "", email: "" });
+    const [userData, setUserData] = useState({ name: "", email: "", role: "" });
 
     useEffect(() => {
         const token = localStorage.getItem("D!");
@@ -42,7 +44,8 @@ function TopBar(props) {
                 const decoded = jwtDecode(token);
                 setUserData({
                     name: decoded.name || "User",
-                    email: decoded.email || "Not available"
+                    email: decoded.email || "Not available",
+                    role: decoded.role || "Not available"
                 });
             } catch (err) {
                 console.error("Invalid token", err);
@@ -121,26 +124,22 @@ function TopBar(props) {
                         onClick={handleNotificationClick}
                     />
 
+                    {userData.role === 2 && (
+                        <PersonAddAltRoundedIcon
+                            sx={{ color: "#616773", fontSize: "22px", cursor: "pointer", margin: "5px" }}
+                            onClick={() => navigate("/register")}
+                            titleAccess="Register"
+                        />
+                    )}
+
+
                     <div
                         className="box"
-                        style={{
-                            backgroundColor: "var(--document)",
-                            borderRadius: "5px",
-                            display: "flex",
-                            alignItems: "center",
-                            padding: "5px 10px",
-                            border: "1px solid var(--border-color)",
-                            cursor: "pointer",
-                            fontWeight: "var(--f-weight)",
-                            gap: "15px"
-                        }}
-                        onClick={handleClick}
                     >
-                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "5px" }}>
+                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "50px" }}>
                             {firstLetter}
                         </div>
-                        <div className="topbar-name">{userData.name}</div>
-                        <KeyboardArrowDownRoundedIcon />
+                        
                     </div>
 
                     <Menu
@@ -185,7 +184,7 @@ function TopBar(props) {
                             >
                                 {userData.name}
                             </Typography>
-                            <img
+                            {/* <img
                                 src={image}
                                 style={{
                                     width: "80px",
@@ -197,7 +196,13 @@ function TopBar(props) {
                                     backgroundColor: "white"
                                 }}
                                 alt="profile"
-                            />
+                            /> */}
+                            <div style={{
+                                marginTop: "30px", width: "80px",
+                                height: "80px", zIndex: "3", backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "50px", fontSize: "40px", display: "flex", justifyContent: "center", alignItems: "center", color: "var(--text)"
+                            }}>
+                                {firstLetter}
+                            </div>
                             <Typography variant="body2" sx={{ color: "var(--text)", fontWeight: "var(--f-weight)" }}>
                                 {userData.name}
                             </Typography>

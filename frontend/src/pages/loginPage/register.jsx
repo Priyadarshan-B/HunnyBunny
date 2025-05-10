@@ -2,34 +2,35 @@ import React, { useState } from "react";
 import "./loginPage.css";
 import { useNavigate } from "react-router-dom";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { Input, Button, Form } from "antd";
-import {showSuccess, showError} from "../../components/toast/toast";
+import { Input, Button, Form, Select, message } from "antd";
 import CustomizedSwitches from "../../components/appLayout/toggleTheme";
 import image from "../../assets/image.png";
 import requestApi from "../../components/utils/axios";
 import hunnybunny from "../../assets/hunnybunny.png";
 
-function Login() {
+const { Option } = Select;
+
+function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
     const navigate = useNavigate();
 
     const onFinish = async (values) => {
         setLoading(true);
-        const { username, password } = values;
+        const { username, email, password, role } = values;
 
-        const response = await requestApi("POST", "/auth/login", {
+        const response = await requestApi("POST", "/auth/register", {
             username,
+            email,
             password,
+            role,
         });
 
         if (response.success) {
-            showSuccess("Login successful");
-            localStorage.setItem("D!", response.data.token);
-            navigate("/dashboard");
+            message.success("Registration successful!");
+            navigate("/login");
         } else {
-            showError("Invalid credentials!");
-            message.error(response.error?.message || "Login failed");
+            message.error(response.error?.message || "Registration failed");
         }
 
         setLoading(false);
@@ -46,12 +47,13 @@ function Login() {
                     <img src={image} alt="Bakery inside" className="card-image" />
                 </div>
                 <div className="card-form-section">
-                <center><img className="hunnybunny" src={hunnybunny} alt="" />
-                    <p>Freshness at your fingertips!</p></center>
+                    <center>
+                        <img className="hunnybunny" src={hunnybunny} alt="" />
+                        <p>Freshness at your fingertips!</p>
+                    </center>
                     <Form
-                        name="login-form"
+                        name="register-form"
                         onFinish={onFinish}
-                        // className="login-form"
                         layout="vertical"
                     >
                         <Form.Item
@@ -59,6 +61,26 @@ function Login() {
                             rules={[{ required: true, message: "Please input your username!" }]}
                         >
                             <Input placeholder="Username" />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="email"
+                            rules={[
+                                { required: true, message: "Please input your email!" },
+                                { type: "email", message: "Enter a valid email!" }
+                            ]}
+                        >
+                            <Input placeholder="Email" />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="role"
+                            rules={[{ required: true, message: "Please select your role!" }]}
+                        >
+                            <Select placeholder="Select Role">
+                                <Option value="admin">Admin</Option>
+                                <Option value="user">User</Option>
+                            </Select>
                         </Form.Item>
 
                         <Form.Item
@@ -84,7 +106,7 @@ function Login() {
                                 loading={loading}
                                 className="login-btn"
                             >
-                                Login
+                                Register
                             </Button>
                         </Form.Item>
                     </Form>
@@ -94,4 +116,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default Register;
