@@ -18,7 +18,7 @@ import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { jwtDecode } from "jwt-decode";
 import image from "../../assets/image.png";
 import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
-
+import logo from "../../assets/logo.png";
 
 // Styled Dialog
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -111,7 +111,8 @@ function TopBar(props) {
                         <MenuIcon style={{ color: "#7e57c2", margin: "0px 5px" }} />
                     </div>
                     <div className="app-name">
-                        <FastfoodIcon sx={{ color: "orange" }} />
+                        {/* <FastfoodIcon sx={{ color: "orange" }} /> */}
+                        <img src={logo} alt="logo" style={{ height: "45px" }} />
                         <b>Hunny Bunny</b>
                     </div>
                 </div>
@@ -132,15 +133,10 @@ function TopBar(props) {
                         />
                     )}
 
-
-                    <div
-                        className="box"
-                    >
-                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "50px" }}>
-                            {firstLetter}
-                        </div>
-                        
+                    <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "50px" }} onClick={handleClick}>
+                        {firstLetter}
                     </div>
+
 
                     <Menu
                         anchorEl={anchorEl}

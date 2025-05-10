@@ -141,7 +141,7 @@ const Products = () => {
                       title="Save changes?"
                       onConfirm={() => handleSave(product.id)}
                     >
-                      <SaveOutlined key="save" />
+                      <SaveOutlined style={{ color: "#635bff", fontSize: "20px" }} key="save" />
                     </Popconfirm>
                   ) : (
                     <EditOutlined
@@ -154,7 +154,7 @@ const Products = () => {
                       title="Discard changes?"
                       onConfirm={() => handleCancel(product.id)}
                     >
-                      <CloseOutlined key="cancel" />
+                      <CloseOutlined style={{ color: "red", fontSize: "20px" }} key="cancel" />
                     </Popconfirm>
                   ) : (
                     <Popconfirm
@@ -180,8 +180,11 @@ const Products = () => {
                     openStickerModal(product);
                   }}
                 />
-                <div className="flex gap-10">
-                  <div className="flex flex-1 flex-col items-center">
+
+                <div className="flex gap-30">
+
+                  <div className="flex flex-1 flex-col items-center justify-center">
+
                     <img
                       src={`${apiHost}/public/${product.qr_code}`}
                       alt="QR code"
@@ -192,8 +195,8 @@ const Products = () => {
                     </p>
                   </div>
                   <div className="flex flex-1 flex-col justify-between w-full">
-                    <p className="text-lg font-semibold">
-                      {product.product_name}
+                    <p className="text-lg font-bold">
+                      <b>{product.product_name}</b>
                     </p>
                     <p>₹ {product.product_price}</p>
                     <p>
@@ -206,7 +209,7 @@ const Products = () => {
                           onChange={(d, ds) =>
                             handleDateChange(product.id, "pkd", d, ds)
                           }
-                          className="mb-2"
+                          className="border border-[var(--border-color)] [background-color:var(--background)] text-[var(--text)]"
                           format="DD-MM-YYYY"
                           style={{ width: "100%" }}
                         />
@@ -215,6 +218,7 @@ const Products = () => {
                           onChange={(d, ds) =>
                             handleDateChange(product.id, "exp", d, ds)
                           }
+                          className="border border-[var(--border-color)] [background-color:var(--background)] text-[var(--text)]"
                           format="DD-MM-YYYY"
                           minDate={
                             state.pkd ? dayjs(state.pkd, "DD-MM-YYYY") : null

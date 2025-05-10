@@ -44,8 +44,8 @@ function Login() {
                     <img src={image} alt="Bakery inside" className="card-image" />
                 </div>
                 <div className="card-form-section">
-                <center><img className="hunnybunny" src={hunnybunny} alt="" />
-                    <p>Freshness at your fingertips!</p></center>
+                    <center><img className="hunnybunny" src={hunnybunny} alt="" />
+                        <p>Freshness at your fingertips!</p></center>
                     <Form
                         name="login-form"
                         onFinish={onFinish}
