@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from 'react';
 import AppLayout from "./components/appLayout/Layout";
+import ToastMessage from "./components/toast/toast";
 import Scan from "./pages/Scan";
 import Dashboard from "./pages/Dashboard";
 import QRForm from "./pages/qrCode/qrCode";
@@ -11,6 +11,7 @@ import Login from "./pages/loginPage/loginPage";
 function App() {
   return (
     <BrowserRouter>
+      <ToastMessage />
       <Routes>
         <Route path="/" element={<AppLayout body={<div>Welcome to the App</div>} />} />
         <Route path="/scan" element={<AppLayout body={<Scan />} />} />

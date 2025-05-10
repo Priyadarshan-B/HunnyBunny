@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import "./loginPage.css";
 import { useNavigate } from "react-router-dom";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { Input, Button, Form, message } from "antd";
+import { Input, Button, Form } from "antd";
+import {showSuccess, showError} from "../../components/toast/toast";
 import CustomizedSwitches from "../../components/appLayout/toggleTheme";
 import image from "../../assets/image.png";
 import requestApi from "../../components/utils/axios";
@@ -23,10 +24,11 @@ function Login() {
         });
 
         if (response.success) {
-            message.success("Login successful!");
+            showSuccess("Login successful");
             localStorage.setItem("D!", response.data.token);
             navigate("/dashboard");
         } else {
+            showError("Invalid credentials!");
             message.error(response.error?.message || "Login failed");
         }
 

@@ -63,13 +63,12 @@ const Products = () => {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    if (value === "") {
+    if (value.length <= 0) {
       fetchProducts("");
     } else {
       debouncedSearch(value);
     }
   };
-
 
   const handleEdit = (id) =>
     setEditStates((prev) => ({
@@ -112,7 +111,6 @@ const Products = () => {
   };
 
   // if (loading) return <Spin />;
-
 
   return (
     <div>
@@ -261,7 +259,7 @@ const Products = () => {
         />
       </>
     </div>
-  );
+  );  
 };
 
 export default Products;
