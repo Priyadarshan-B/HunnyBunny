@@ -7,6 +7,7 @@ import {
   Popconfirm,
   Button,
   Input,
+  Select 
 } from "antd";
 import {
   EditOutlined,
@@ -26,6 +27,7 @@ import StickerModal from "../../components/stickerModal/stickerModal";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [quantity, setQunatity] = useState([])
   const [loading, setLoading] = useState(true);
   const [editStates, setEditStates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,7 +43,7 @@ const Products = () => {
 
       const initialStates = {};
       res.data.forEach((prod) => {
-        initialStates[prod.id] = { pkd: null, exp: null, editing: false };
+        initialStates[prod.id] = {qty : null, pkd: null, exp: null, editing: false };
       });
       setEditStates(initialStates);
     } catch {
@@ -51,23 +53,36 @@ const Products = () => {
       setLoading(false);
     }
   };
+  const fetchQuantity = async ()=>{
+    try{
+      setLoading(true)
+      const res = await requestApi("GET", "/products/qty")
+       const formatted = res.data.map(qty => ({
+          value: qty.quantity, 
+          label: `${qty.quantity} - ${qty.expansion}`, 
+        }));
+        setQunatity(formatted)
+    }catch(error){
+       console.error('Failed to fetch quantities:', error);
+    }
+    finally{
+      setLoading(false)
+    }
+  }
   useEffect(() => {
     fetchProducts();
+    fetchQuantity()
   }, []);
 
   const debouncedSearch = useCallback(
-    debounce((value) => fetchProducts(value), 300),
+    debounce((value) => fetchProducts(value), 400),
     []
   );
 
   const handleSearch = (e) => {
     const value = e.target.value;
-    setSearchTerm(value);
-    if (value.length <= 0) {
-      fetchProducts("");
-    } else {
+    setSearchTerm(value.trim());
       debouncedSearch(value);
-    }
   };
 
   const handleEdit = (id) =>
@@ -77,8 +92,8 @@ const Products = () => {
     }));
 
   const handleSave = (id) => {
-    const { pkd, exp } = editStates[id];
-    console.log("Save product:", id, { pkd, exp });
+    const {qty, pkd, exp } = editStates[id];
+    console.log("Save product:", id, {qty, pkd, exp });
     setEditStates((prev) => ({
       ...prev,
       [id]: { ...prev[id], editing: false },
@@ -88,14 +103,21 @@ const Products = () => {
   const handleCancel = (id) =>
     setEditStates((prev) => ({
       ...prev,
-      [id]: { pkd: null, exp: null, editing: false },
+      [id]: {qty:null, pkd: null, exp: null, editing: false },
     }));
 
   const handleDelete = (id) =>
     setEditStates((prev) => ({
       ...prev,
-      [id]: { pkd: null, exp: null, editing: false },
+      [id]: { qty:null,pkd: null, exp: null, editing: false },
     }));
+
+    const handleQtyChange = (id, value) => {
+  setEditStates((prev) => ({
+    ...prev,
+    [id]: { ...prev[id], qty: value },
+  }));
+};
 
   const handleDateChange = (id, type, _, dateString) => {
     setEditStates((prev) => ({
@@ -197,11 +219,26 @@ const Products = () => {
                       <b>{product.product_name}</b>
                     </p>
                     <p>₹ {product.product_price}</p>
-                    <p>
-                      <b>Qty:</b> {product.product_quantity} gm
-                    </p>
+                {/* {state.qty && state.qty.length > 0 ? (
+ null
+) : <p>
+    <b>Qty:</b> {product.product_quantity}
+  </p>} */}
                     {state.editing ? (
                       <>
+                      <Select
+      showSearch
+      placeholder="Select a quantity"
+      loading={loading}
+      value={editStates[product.id]?.qty || null}
+  onChange={(value) => handleQtyChange(product.id, value)}
+      filterOption={(input, option) =>
+        option.label.toLowerCase().includes(input.toLowerCase())
+      }
+      options={quantity}
+        style={{ width: 200 }}
+
+    />
                         <DatePicker
                           placeholder="Packed Date"
                           onChange={(d, ds) =>
@@ -223,9 +260,15 @@ const Products = () => {
                           }
                           style={{ width: "100%" }}
                         />
+                        <p>
+                          <b>Qty:</b> {product.product_quantity} {state.qty || "--"}
+                        </p>
                       </>
                     ) : (
                       <>
+                      <p>
+                          <b>Qty:</b> {product.product_quantity} {state.qty || "--"}
+                        </p>
                         <p>
                           <b>pkd:</b> {state.pkd || "--"}
                         </p>

@@ -7,7 +7,7 @@ exports.post_qr_products = async (req, res) => {
       const { product_id, name, price, quantity } = req.body;
       const qrImage = req.file;
   
-      if (!product_id || !name || !price || !quantity || !qrImage) {
+      if (!product_id || !name || !price || !quantity) {
         return res.status(400).json({ error: "All fields are required" });
       }
   
@@ -19,7 +19,6 @@ exports.post_qr_products = async (req, res) => {
   
       fs.writeFileSync(filePath, qrImage.buffer);
   
-      // Store only the QR path in DB
       const qr_Path = `qr-codes/${fileName}`;
   
       const query = `INSERT INTO qr_products 

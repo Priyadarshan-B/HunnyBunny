@@ -122,7 +122,7 @@ const StickerModal = ({
                       MRP {product.product_price}
                     </p>
                     <p style={{ fontSize: "8px" }}>
-                      {product.product_quantity} gm
+                      {product.product_quantity} {editStates[product.id]?.qty}
                     </p>
                   </div>
                   <div className="flex flex-col align-middle">
