@@ -3,8 +3,8 @@ import Webcam from 'react-webcam';
 import jsQR from 'jsqr';
 import axios from 'axios';
 import jsPDF from 'jspdf';
-import apiHost from './utils/api'; // Make sure this path is correct
-import './QRScanner.css'; // Your CSS styling
+import apiHost from './utils/api';
+import './QRScanner.css';
 
 const QRScanner = () => {
     const webcamRef = useRef(null);
@@ -15,6 +15,8 @@ const QRScanner = () => {
     const [totalAmount, setTotalAmount] = useState(0);
     const [showPreview, setShowPreview] = useState(false);
     const [pdfUrl, setPdfUrl] = useState('');
+    const [customerName, setCustomerName] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('UPI');
 
     const capture = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot();
@@ -48,8 +50,7 @@ const QRScanner = () => {
                 throw new Error("No product found");
             }
 
-            const product = products[0]; // use the first product from the array
-
+            const product = products[0];
             const price = parseFloat(product.price);
             if (isNaN(price)) throw new Error("Invalid product price");
 
@@ -67,11 +68,8 @@ const QRScanner = () => {
         }
     };
 
-
     const recalculateTotal = (updatedProducts) => {
-        const newTotal = updatedProducts.reduce((sum, prod) => {
-            return sum + prod.price * prod.quantity;
-        }, 0);
+        const newTotal = updatedProducts.reduce((sum, prod) => sum + prod.price * prod.quantity, 0);
         setTotalAmount(newTotal);
     };
 
@@ -86,7 +84,6 @@ const QRScanner = () => {
         recalculateTotal(updated);
     };
 
-
     useEffect(() => {
         const interval = setInterval(capture, 1000);
         return () => clearInterval(interval);
@@ -96,103 +93,39 @@ const QRScanner = () => {
         scannedCodes.current.clear();
         setProducts([]);
         setTotalAmount(0);
+        setCustomerName('');
+        setPaymentMethod('UPI');
     };
 
-    const generatePDF = () => {
-        const doc = new jsPDF();
-        const startX = 15;
-        let startY = 20;
-
-        // Title
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Product Bill', startX, startY);
-
-        startY += 15;
-
-        // Table column headers
-        const headers = ['Code', 'Product Name', 'Qty', 'Price (Rs)', 'Subtotal'];
-        const colWidths = [30, 60, 20, 30, 30];
-        const rowHeight = 10;
-
-        // Draw table header
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        let currentX = startX;
-
-        headers.forEach((header, index) => {
-            doc.rect(currentX, startY, colWidths[index], rowHeight); // Border
-            doc.text(header, currentX + 2, startY + 7); // Text
-            currentX += colWidths[index];
-        });
-
-        // Draw table rows
-        doc.setFont('helvetica', 'normal');
-        startY += rowHeight;
-
-        products.forEach(product => {
-            let x = startX;
-
-            const values = [
-                product.code.toString(),
-                product.name.toString(),
-                product.quantity.toString(),
-                `Rs. ${parseFloat(product.price).toFixed(2)}`,
-                `Rs. ${(product.price * product.quantity).toFixed(2)}`
-            ];
-
-
-            values.forEach((text, i) => {
-                doc.rect(x, startY, colWidths[i], rowHeight);
-                doc.text(text, x + 2, startY + 7);
-                x += colWidths[i];
-            });
-
-            startY += rowHeight;
-        });
-
-        // Draw total
-        // Draw total
-        doc.setFont('helvetica', 'bold');
-        const totalColSpan = colWidths.slice(0, 4).reduce((a, b) => a + b, 0);
-        doc.rect(startX, startY, totalColSpan, rowHeight);
-        doc.text('Total Amount:', startX + 2, startY + 7);
-        doc.rect(startX + totalColSpan, startY, colWidths[4], rowHeight);
-        doc.text(`Rs. ${parseFloat(totalAmount).toFixed(2)}`, startX + totalColSpan + 2, startY + 7);
-
-
-        return doc;
-    };
-
-
-    const handlePreviewBill = () => {
-        if (products.length === 0) {
-            alert("No products to generate bill!");
+    const handleSubmitBill = async () => {
+        if (!customerName.trim()) {
+            alert("Please enter customer name.");
             return;
         }
 
-        const doc = generatePDF();
+        const billDetails = {
+            customer_name: customerName,
+            total_amount: parseFloat(totalAmount.toFixed(2)),
+            payment_method: paymentMethod,
+            items: products.map(p => ({
+                product_name: p.name,
+                quantity: p.quantity,
+                unit_price: p.price
+            }))
+        };
 
-        // Convert the PDF to a data URL
-        const pdfData = doc.output('datauristring');
-        setPdfUrl(pdfData);
-        setShowPreview(true);
-    };
-
-    const handleDownloadBill = () => {
-        const doc = generatePDF();
-        doc.save('Product_Bill.pdf');
-        setShowPreview(false);
-    };
-
-    const handleClosePreview = () => {
-        setShowPreview(false);
-        setPdfUrl('');
+        try {
+            await axios.post(`${apiHost}/bills/bill-details`, billDetails);
+            alert("Bill details submitted successfully!");
+            handleClearAll();
+        } catch (error) {
+            alert("Failed to submit bill details.");
+            console.error(error);
+        }
     };
 
     return (
         <div className="qr-container">
-
             <div className="qr-reader">
                 <h2 className="qr-title">QR Scanner</h2>
                 <Webcam
@@ -207,6 +140,23 @@ const QRScanner = () => {
 
             <div className='qr-reader-table'>
                 <h3 className="qr-subtitle">Scanned Products</h3>
+                <input
+                    type="text"
+                    placeholder="Customer Name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    style={{ marginBottom: '10px', padding: '5px', width: '200px' }}
+                />
+                <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    style={{ marginLeft: '10px', padding: '5px' }}
+                >
+                    <option value="UPI">UPI</option>
+                    <option value="COD">COD</option>
+                    <option value="CARD">CARD</option>
+                </select>
+
                 <table className="qr-table">
                     <thead>
                         <tr>
@@ -224,7 +174,8 @@ const QRScanner = () => {
                                 <td>{prod.name}</td>
                                 <td>
                                     <input
-                                        className="border border-[var(--border-color)]" style={{ backgroundColor: "var(--document)", color: "var(--text)", width: "70px" }}
+                                        className="border border-[var(--border-color)]"
+                                        style={{ backgroundColor: "var(--document)", color: "var(--text)", width: "70px" }}
                                         type="number"
                                         min="1"
                                         value={prod.quantity}
@@ -233,7 +184,8 @@ const QRScanner = () => {
                                 </td>
                                 <td>
                                     <input
-                                        className="border border-[var(--border-color)]" style={{ backgroundColor: "var(--document)", color: "var(--text)", width: "70px" }}
+                                        className="border border-[var(--border-color)]"
+                                        style={{ backgroundColor: "var(--document)", color: "var(--text)", width: "70px" }}
                                         type="number"
                                         min="0"
                                         step="0.01"
@@ -245,39 +197,14 @@ const QRScanner = () => {
                             </tr>
                         ))}
                     </tbody>
-
                 </table>
+
                 <div className="qr-total">Total Amount: ₹{parseFloat(totalAmount)}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" }}>
                     <button className="qr-clear-btn" onClick={handleClearAll}>Clear All</button>
-                    <button className="qr-bill-btn" onClick={handlePreviewBill}>Generate Bill</button>
+                    <button className="qr-bill-btn" onClick={handleSubmitBill}>Submit Bill</button>
                 </div>
             </div>
-
-            {/* PDF Preview Modal */}
-            {showPreview && (
-                <div className="pdf-preview-modal">
-                    <div className="pdf-preview-content">
-                        <div className="pdf-preview-header">
-                            <h3>Bill Preview</h3>
-                            <button className="close-btn" onClick={handleClosePreview}>×</button>
-                        </div>
-                        <div className="pdf-preview-body">
-                            <iframe
-                                src={pdfUrl}
-                                title="PDF Preview"
-                                width="100%"
-                                height="500px"
-                                frameBorder="0"
-                            />
-                        </div>
-                        <div className="pdf-preview-footer">
-                            <button className="download-btn" onClick={handleDownloadBill}>Download PDF</button>
-                            <button className="cancel-btn" onClick={handleClosePreview}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
