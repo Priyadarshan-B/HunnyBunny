@@ -59,12 +59,9 @@ exports.get_bills = async (req, res) => {
         b.total_amount,
         b.payment_method,
         b.createdAt AS bill_created_at,
-        d.id AS item_id,
         d.product_name,
         d.quantity,
-        d.unit_price,
-        d.total_price,
-        d.createdAt AS item_created_at
+        d.unit_price
       FROM 
         bills b
       JOIN 
@@ -85,8 +82,36 @@ exports.get_bills = async (req, res) => {
       params.push(`%${bill_id}%`);
     }
 
-    const result = await get_database(query, params);
-    res.status(200).json(result);
+    const rows = await get_database(query, params);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "No matching bills found" });
+    }
+
+    // Group rows by bill_id
+    const billMap = {};
+
+    for (const row of rows) {
+      if (!billMap[row.bill_id]) {
+        billMap[row.bill_id] = {
+          customer_name: row.customer_name,
+          total_amount: parseFloat(row.toatal_amount),
+          payment_method: row.payment_method,
+          items: []
+        };
+      }
+
+      billMap[row.bill_id].items.push({
+        product_name: row.product_name,
+        quantity: row.quantity,
+        unit_price: parseFloat(row.unit_price)
+      });
+    }
+
+    // Convert map to array of bills
+    const bills = Object.values(billMap);
+
+    res.status(200).json(bills);
   } catch (error) {
     console.error("Error fetching bills:", error);
     res.status(500).json({ error: "Failed to fetch bills" });
