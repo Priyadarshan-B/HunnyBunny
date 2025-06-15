@@ -3,7 +3,6 @@ const router = express.Router();
 const multer = require('multer');
 const products = require("../../controllers/products/qr_products");
 const quantity = require('../../controllers/products/quantity')
-
 const storage = multer.memoryStorage(); 
 const upload = multer({ storage });
 
