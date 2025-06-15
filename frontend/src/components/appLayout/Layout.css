@@ -140,6 +140,7 @@ p {
 .list-items.active .link {
     background-color: var(--menu-hover);
     box-sizing: border-box;
+    color: white;
 }
 
 .list-items.active .custom-sidebar-icon,

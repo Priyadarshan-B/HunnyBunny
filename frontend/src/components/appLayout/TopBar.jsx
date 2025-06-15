@@ -133,7 +133,7 @@ function TopBar(props) {
                         />
                     )}
 
-                    <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "50px" }} onClick={handleClick}>
+                    <div style={{ backgroundColor: "#0a6259", padding: "5px 13px", borderRadius: "100%", cursor:"pointer", fontWeight:"bold", color:"white"}} onClick={handleClick}>
                         {firstLetter}
                     </div>
 

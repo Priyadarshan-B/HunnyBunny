@@ -111,7 +111,7 @@ function SideBar(props) {
             >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "5px" }}>
+                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "5px", fontWeight:"bold" }}>
                             {firstLetter}
                         </div>
                         <div>{displayUsername}</div>
