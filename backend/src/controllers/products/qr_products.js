@@ -38,7 +38,7 @@ exports.post_qr_products = async (req, res) => {
     try {
       const { term } = req.query;
       let query = `
-        SELECT id, product_code, product_name, product_price, product_quantity, qr_code 
+        SELECT id, product_code AS code , product_name AS name, product_price AS price,  product_quantity, qr_code 
         FROM qr_products 
         WHERE status = ?
       `;
@@ -65,7 +65,7 @@ exports.post_qr_products = async (req, res) => {
   
 
 
-
+// jo
   exports.get_product_by_code = async (req, res) => {
   try {
     const { code } = req.body;
