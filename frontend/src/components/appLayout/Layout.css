@@ -125,10 +125,6 @@ p {
     background-color: #635bff7b;
 }
 
-.link:hover .custom-sidebar-icon {
-    /* background-color: white; */
-}
-
 .link {
     text-decoration: none;
     color: var(--text);

@@ -41,15 +41,44 @@ const QRScanner = () => {
 
     const fetchProduct = async (code) => {
         try {
-            const response = await axios.post(`${apiHost}/getProduct`, { code });
+            const response = await axios.post(`${apiHost}/products/getProduct`, { code });
             const product = response.data;
-            setProducts((prev) => [...prev, product]);
-            setTotalAmount((prev) => prev + product.price);
+
+            const price = parseFloat(product.price);
+            if (isNaN(price)) throw new Error("Invalid product price");
+
+            const newProduct = {
+                ...product,
+                price: price,
+                quantity: 1
+            };
+
+            setProducts((prev) => [...prev, newProduct]);
+            setTotalAmount((prev) => prev + price);
         } catch (error) {
             alert("Product not found or server error.");
             console.error(error);
         }
     };
+
+    const recalculateTotal = (updatedProducts) => {
+        const newTotal = updatedProducts.reduce((sum, prod) => {
+            return sum + prod.price * prod.quantity;
+        }, 0);
+        setTotalAmount(newTotal);
+    };
+
+    const handleChange = (index, field, value) => {
+        const updated = [...products];
+        if (field === 'price') {
+            updated[index][field] = parseFloat(value) || 0;
+        } else {
+            updated[index][field] = parseInt(value) || 0;
+        }
+        setProducts(updated);
+        recalculateTotal(updated);
+    };
+
 
     useEffect(() => {
         const interval = setInterval(capture, 1000);
@@ -63,48 +92,71 @@ const QRScanner = () => {
     };
 
     const generatePDF = () => {
-        // Create a new PDF document
         const doc = new jsPDF();
+        const startX = 15;
+        let startY = 20;
 
-        // Set title
+        // Title
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('Product Bill', 15, 20);
+        doc.text('Product Bill', startX, startY);
 
-        // Create header row
+        startY += 15;
+
+        // Table column headers
+        const headers = ['Code', 'Product Name', 'Qty', 'Price (Rs)', 'Subtotal'];
+        const colWidths = [30, 60, 20, 30, 30];
+        const rowHeight = 10;
+
+        // Draw table header
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('Code', 15, 40);
-        doc.text('Product Name', 65, 40);
-        doc.text('Price (₹)', 160, 40);
+        let currentX = startX;
 
-        // Add horizontal line
-        doc.setLineWidth(0.5);
-        doc.line(15, 45, 195, 45);
-
-        // Add product rows
-        doc.setFont('helvetica', 'normal');
-        let yPosition = 55;
-
-        products.forEach((product) => {
-            doc.text(product.code.toString(), 15, yPosition);
-            doc.text(product.name.toString(), 65, yPosition);
-            doc.text(`₹${product.price.toString()}`, 160, yPosition);
-            yPosition += 10;
+        headers.forEach((header, index) => {
+            doc.rect(currentX, startY, colWidths[index], rowHeight); // Border
+            doc.text(header, currentX + 2, startY + 7); // Text
+            currentX += colWidths[index];
         });
 
-        // Add horizontal line before total
-        doc.setLineWidth(0.5);
-        doc.line(15, yPosition, 195, yPosition);
-        yPosition += 10;
+        // Draw table rows
+        doc.setFont('helvetica', 'normal');
+        startY += rowHeight;
 
-        // Add total
+        products.forEach(product => {
+            let x = startX;
+
+            const values = [
+                product.code.toString(),
+                product.name.toString(),
+                product.quantity.toString(),
+                `Rs. ${parseFloat(product.price).toFixed(2)}`,
+                `Rs. ${(product.price * product.quantity).toFixed(2)}`
+            ];
+
+
+            values.forEach((text, i) => {
+                doc.rect(x, startY, colWidths[i], rowHeight);
+                doc.text(text, x + 2, startY + 7);
+                x += colWidths[i];
+            });
+
+            startY += rowHeight;
+        });
+
+        // Draw total
+        // Draw total
         doc.setFont('helvetica', 'bold');
-        doc.text('Total Amount:', 120, yPosition);
-        doc.text(`₹${totalAmount.toString()}`, 160, yPosition);
+        const totalColSpan = colWidths.slice(0, 4).reduce((a, b) => a + b, 0);
+        doc.rect(startX, startY, totalColSpan, rowHeight);
+        doc.text('Total Amount:', startX + 2, startY + 7);
+        doc.rect(startX + totalColSpan, startY, colWidths[4], rowHeight);
+        doc.text(`Rs. ${parseFloat(totalAmount).toFixed(2)}`, startX + totalColSpan + 2, startY + 7);
+
 
         return doc;
     };
+
 
     const handlePreviewBill = () => {
         if (products.length === 0) {
@@ -153,7 +205,9 @@ const QRScanner = () => {
                         <tr>
                             <th>Code</th>
                             <th>Name</th>
+                            <th>Qty</th>
                             <th>Price</th>
+                            <th>Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,13 +215,33 @@ const QRScanner = () => {
                             <tr key={idx}>
                                 <td>{prod.code}</td>
                                 <td>{prod.name}</td>
-                                <td>₹{prod.price}</td>
+                                <td>
+                                    <input
+                                        className="border border-[var(--border-color)]" style={{ backgroundColor: "var(--document)", color: "var(--text)", width: "70px" }}
+                                        type="number"
+                                        min="1"
+                                        value={prod.quantity}
+                                        onChange={(e) => handleChange(idx, 'quantity', e.target.value)}
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        className="border border-[var(--border-color)]" style={{ backgroundColor: "var(--document)", color: "var(--text)", width: "70px" }}
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={prod.price}
+                                        onChange={(e) => handleChange(idx, 'price', e.target.value)}
+                                    />
+                                </td>
+                                <td>Rs. {(prod.price * prod.quantity).toFixed(2)}</td>
                             </tr>
                         ))}
                     </tbody>
+
                 </table>
-                <div className="qr-total">Total Amount: ₹{totalAmount}</div>
-                <div style={{display:"flex", alignItems:"center", justifyContent:"flex-end", gap:"10px"}}>
+                <div className="qr-total">Total Amount: ₹{parseFloat(totalAmount)}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" }}>
                     <button className="qr-clear-btn" onClick={handleClearAll}>Clear All</button>
                     <button className="qr-bill-btn" onClick={handlePreviewBill}>Generate Bill</button>
                 </div>

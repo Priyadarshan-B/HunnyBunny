@@ -65,3 +65,35 @@ exports.post_qr_products = async (req, res) => {
   };
   
 
+
+
+  exports.get_product_by_code = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({ error: "Product code is required" });
+    }
+
+    const query = `
+      SELECT 
+        product_code AS code, 
+        product_name AS name, 
+        product_price AS price 
+      FROM qr_products 
+      WHERE product_code = ? AND status = '1'
+      LIMIT 1
+    `;
+    const params = [code];
+    const result = await get_database(query, params);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.status(200).json(result[0]);
+  } catch (error) {
+    console.error("Error fetching product by code:", error);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+};

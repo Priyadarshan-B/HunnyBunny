@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use('/auth', authRoutes);
 
-router.use(authenticateToken);
+// router.use(authenticateToken);
 router.use('/products', productsRoutes);
 
 module.exports = router;
