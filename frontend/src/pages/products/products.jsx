@@ -211,14 +211,14 @@ const Products = () => {
                       className="w-24 h-24 object-contain bg-white p-1"
                     />
                     <p className="text-sm font-semibold mt-2">
-                      {product.product_code}
+                      {product.code}
                     </p>
                   </div>
                   <div className="flex flex-1 flex-col justify-between w-full">
                     <p className="text-lg font-bold">
-                      <b>{product.product_name}</b>
+                      <b>{product.name}</b>
                     </p>
-                    <p>₹ {product.product_price}</p>
+                    <p>₹ {product.price}</p>
                 {/* {state.qty && state.qty.length > 0 ? (
  null
 ) : <p>

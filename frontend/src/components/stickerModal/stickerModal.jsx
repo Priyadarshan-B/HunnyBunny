@@ -106,7 +106,7 @@ const StickerModal = ({
                   style={{ width: 50, height: 50 }}
                 />
                 <p style={{ fontWeight: "bold", fontSize: "10px" }}>
-                  {product.product_code}
+                  {product.code}
                 </p>
               </div>
               <div>
@@ -114,12 +114,12 @@ const StickerModal = ({
                   Hunny Bunny
                 </p>
                 <h4 style={{ fontWeight: "bold", fontSize: "10px" }}>
-                  {product.product_name.toUpperCase()}
+                  {product.name.toUpperCase()}
                 </h4>
                 <div className="flex flex-row-reverse gap-4 mt-1">
                   <div className="flex-1 flex-col">
                     <p style={{ fontWeight: "600", fontSize: "9px" }}>
-                      MRP {product.product_price}
+                      MRP {product.price}
                     </p>
                     <p style={{ fontSize: "8px" }}>
                       {product.product_quantity} {editStates[product.id]?.qty}
