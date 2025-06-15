@@ -88,15 +88,16 @@ exports.get_bills = async (req, res) => {
       return res.status(404).json({ message: "No matching bills found" });
     }
 
-    // Group rows by bill_id
     const billMap = {};
 
     for (const row of rows) {
       if (!billMap[row.bill_id]) {
         billMap[row.bill_id] = {
+          bill_id: row.bill_id,
           customer_name: row.customer_name,
           total_amount: parseFloat(row.total_amount),
           payment_method: row.payment_method,
+          date: row.bill_created_at,
           items: []
         };
       }
@@ -108,7 +109,6 @@ exports.get_bills = async (req, res) => {
       });
     }
 
-    // Convert map to array of bills
     const bills = Object.values(billMap);
 
     res.status(200).json(bills);
