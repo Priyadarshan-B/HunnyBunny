@@ -40,32 +40,32 @@ const QRScanner = () => {
     }, []);
 
     const fetchProduct = async (code) => {
-    try {
-        const response = await axios.get(`${apiHost}/products/qr_products?term=${code}`);
-        const products = response.data;
+        try {
+            const response = await axios.get(`${apiHost}/products/qr_products?term=${code}`);
+            const products = response.data;
 
-        if (!Array.isArray(products) || products.length === 0) {
-            throw new Error("No product found");
+            if (!Array.isArray(products) || products.length === 0) {
+                throw new Error("No product found");
+            }
+
+            const product = products[0]; // use the first product from the array
+
+            const price = parseFloat(product.price);
+            if (isNaN(price)) throw new Error("Invalid product price");
+
+            const newProduct = {
+                ...product,
+                price: price,
+                quantity: 1
+            };
+
+            setProducts((prev) => [...prev, newProduct]);
+            setTotalAmount((prev) => prev + price);
+        } catch (error) {
+            alert("Product not found or server error.");
+            console.error(error);
         }
-
-        const product = products[0]; // use the first product from the array
-
-        const price = parseFloat(product.price);
-        if (isNaN(price)) throw new Error("Invalid product price");
-
-        const newProduct = {
-            ...product,
-            price: price,
-            quantity: 1
-        };
-
-        setProducts((prev) => [...prev, newProduct]);
-        setTotalAmount((prev) => prev + price);
-    } catch (error) {
-        alert("Product not found or server error.");
-        console.error(error);
-    }
-};
+    };
 
 
     const recalculateTotal = (updatedProducts) => {
