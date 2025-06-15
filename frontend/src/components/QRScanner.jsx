@@ -98,67 +98,101 @@ const QRScanner = () => {
         setCustomerName('');
         setPaymentMethod('UPI');
     };
-
     const generatePDF = () => {
-        const doc = new jsPDF();
-        const startX = 15;
-        let startY = 20;
-
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Product Bill', startX, startY);
-
-        startY += 10;
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Customer Name: ${customerName}`, startX, startY);
-        startY += 7;
-        doc.text(`Payment Method: ${paymentMethod}`, startX, startY);
-        startY += 10;
-
-        const headers = ['Code', 'Product Name', 'Qty', 'Price (Rs)', 'Subtotal'];
-        const colWidths = [30, 60, 20, 30, 30];
-        const rowHeight = 10;
-
-        doc.setFont('helvetica', 'bold');
-        let currentX = startX;
-        headers.forEach((header, index) => {
-            doc.rect(currentX, startY, colWidths[index], rowHeight);
-            doc.text(header, currentX + 2, startY + 7);
-            currentX += colWidths[index];
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: [226.77, 1000] // 80mm width, height will auto-expand
         });
 
-        doc.setFont('helvetica', 'normal');
-        startY += rowHeight;
+        const startX = 10;
+        let y = 20;
 
-        products.forEach(product => {
-            let x = startX;
-            const values = [
-                product.code.toString(),
-                product.name.toString(),
-                product.quantity.toString(),
-                `Rs. ${parseFloat(product.price).toFixed(2)}`,
-                `Rs. ${(product.price * product.quantity).toFixed(2)}`
-            ];
+        // Fonts
+        doc.setFont('Courier', 'bold');
+        doc.setFontSize(13);
+        doc.text('HUNNY BUNNY', 113, y, { align: 'center' });
+        y += 15;
 
-            values.forEach((text, i) => {
-                doc.rect(x, startY, colWidths[i], rowHeight);
-                doc.text(text, x + 2, startY + 7);
-                x += colWidths[i];
-            });
+        doc.setFontSize(9);
+        doc.text('TIRUCHENGODE ROAD CORNER', 113, y, { align: 'center' });
+        y += 12;
+        doc.text('NAMAKKAL - 637001', 113, y, { align: 'center' });
+        y += 12;
+        doc.text('Ph: 9443385035, 9585541355', 113, y, { align: 'center' });
+        y += 12;
 
-            startY += rowHeight;
+        doc.text('------------------------------------------', 113, y, { align: 'center' });
+        y += 12;
+
+        const billNo = '50639';
+        const time = new Date().toLocaleTimeString();
+        const date = new Date().toLocaleDateString();
+
+        doc.text(`Bill #: ${billNo}`, startX, y);
+        doc.text(`Server`, 180, y);
+        y += 12;
+        doc.text(`Date: ${date}`, startX, y);
+        doc.text(`Time: ${time}`, 180, y);
+        y += 12;
+
+        doc.text('------------------------------------------', 113, y, { align: 'center' });
+        y += 12;
+
+        doc.setFont('Courier', 'bold');
+        doc.text('Particulars       Qty   Rate   Amount', startX, y);
+        y += 10;
+
+        doc.setFont('Courier', 'normal');
+        products.forEach(prod => {
+            const name = prod.name.length > 14 ? prod.name.substring(0, 14) : prod.name.padEnd(14, ' ');
+            const qty = prod.quantity.toString().padStart(3, ' ');
+            const rate = prod.price.toFixed(2).padStart(6, ' ');
+            const amount = (prod.price * prod.quantity).toFixed(2).padStart(7, ' ');
+            doc.text(`${name} ${qty} ${rate} ${amount}`, startX, y);
+            y += 12;
         });
 
-        doc.setFont('helvetica', 'bold');
-        const totalColSpan = colWidths.slice(0, 4).reduce((a, b) => a + b, 0);
-        doc.rect(startX, startY, totalColSpan, rowHeight);
-        doc.text('Total Amount:', startX + 2, startY + 7);
-        doc.rect(startX + totalColSpan, startY, colWidths[4], rowHeight);
-        doc.text(`Rs. ${parseFloat(totalAmount).toFixed(2)}`, startX + totalColSpan + 2, startY + 7);
+        y += 5;
+
+        // Totals
+        const totalQty = products.reduce((sum, p) => sum + p.quantity, 0).toFixed(2);
+        const itemCount = products.length;
+
+        doc.text(`Qty : ${totalQty}`, startX, y);
+        doc.text(`Items : ${itemCount}`, 100, y);
+        doc.text(`Total Amt : ${totalAmount.toFixed(2)}`, 160, y);
+        y += 12;
+        doc.text(`Round off : 0.00`, startX, y);
+        y += 12;
+
+        doc.setFont('Courier', 'bold');
+        doc.text('-----------------------------', 113, y, { align: 'center' });
+        y += 12;
+        doc.text('N E T   A M O U N T', 113, y, { align: 'center' });
+        y += 12;
+        doc.text(`₹ ${totalAmount.toFixed(2)}`, 113, y, { align: 'center' });
+        y += 12;
+        doc.text(`( Rupees ${totalAmount.toFixed(2)} Only )`, 113, y, { align: 'center' });
+        y += 12;
+        doc.text('-----------------------------', 113, y, { align: 'center' });
+        y += 15;
+
+        doc.setFontSize(9);
+        doc.setFont('Courier', 'normal');
+        doc.text('UNIT OF SRI SAKTHI BAKERY, SWEETS & SNACKS', 100, y, { align: 'center' });
+        y += 12;
+        doc.setFont('Courier', 'bold');
+        doc.text('!! Thanks !!! Visit Again !!', 113, y, { align: 'center' });
+        y += 12;
+        doc.setFont('Courier', 'normal');
+        doc.text('For Order & Enquiry', 113, y, { align: 'center' });
+        y += 12;
+        doc.text('Call us on 9443385035', 113, y, { align: 'center' });
 
         return doc;
     };
+
 
     const handlePreviewBill = () => {
         if (products.length === 0) {
