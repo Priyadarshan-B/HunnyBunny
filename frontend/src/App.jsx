@@ -13,7 +13,7 @@ function App() {
     <BrowserRouter>
       <ToastMessage />
       <Routes>
-        <Route path="/" element={<AppLayout body={<div>Welcome to the App</div>} />} />
+        <Route path="/" element={<Login />} />
         <Route path="/scan" element={<AppLayout body={<Scan />} />} />
         <Route path="/dashboard" element={<AppLayout body={<Dashboard />} />} />
         <Route path="/history" element={<AppLayout body={<History />} />} />
