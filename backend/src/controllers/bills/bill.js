@@ -95,7 +95,7 @@ exports.get_bills = async (req, res) => {
       if (!billMap[row.bill_id]) {
         billMap[row.bill_id] = {
           customer_name: row.customer_name,
-          total_amount: parseFloat(row.toatal_amount),
+          total_amount: parseFloat(row.total_amount),
           payment_method: row.payment_method,
           items: []
         };
