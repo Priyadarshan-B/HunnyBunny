@@ -28,11 +28,10 @@ function BillHistoryTable() {
     const [currentPage, setCurrentPage] = useState(1);
     const billsPerPage = 5;
 
-    // Debounce input
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
-            setCurrentPage(1); // reset to page 1 when search changes
+            setCurrentPage(1);
         }, 500);
         return () => clearTimeout(handler);
     }, [search]);
@@ -52,7 +51,6 @@ function BillHistoryTable() {
         fetchBills();
     }, [debouncedSearch]);
 
-    // Pagination logic
     const indexOfLast = currentPage * billsPerPage;
     const indexOfFirst = indexOfLast - billsPerPage;
     const currentBills = bills.slice(indexOfFirst, indexOfLast);
@@ -72,7 +70,6 @@ function BillHistoryTable() {
                 Customer Bills
             </Typography>
 
-            {/* Normal HTML search input */}
             <input
                 type="text"
                 placeholder="Search Customer Name"
@@ -84,21 +81,23 @@ function BillHistoryTable() {
                     fontSize: '16px',
                     marginBottom: '20px',
                     boxSizing: 'border-box',
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'var(--background-1)',
                 }}
             />
 
-            <TableContainer component={Paper} sx={{padding:"10px 10px 0px 10px"}}>
+            <TableContainer component={Paper} sx={{ padding: "10px 10px 0px 10px", backgroundColor: "var(--background-1)" }}>
                 <Table aria-label="collapsible table" sx={{ backgroundColor: 'var(--background-1)' }}>
-                    <TableHead sx={{backgroundColor:"lightgray"}}>
+                    <TableHead sx={{ backgroundColor: "var(--table-header)" }}>
                         <TableRow>
                             <TableCell />
-                            <TableCell sx={{color:"var(--text)", fontWeight:"bold"}}>CUSTOMER NAME</TableCell>
-                            <TableCell sx={{color:"var(--text)", fontWeight:"bold"}}>PAYMENT METHOD</TableCell>
-                            <TableCell sx={{color:"var(--text)", fontWeight:"bold"}}>TOTAL AMOUNT</TableCell>
+                            <TableCell sx={{ color: "var(--text)", fontWeight: "bold" }}>BILL ID</TableCell>
+                            <TableCell sx={{ color: "var(--text)", fontWeight: "bold" }}>CUSTOMER NAME</TableCell>
+                            <TableCell sx={{ color: "var(--text)", fontWeight: "bold" }}>PAYMENT METHOD</TableCell>
+                            <TableCell sx={{ color: "var(--text)", fontWeight: "bold" }}>DATE</TableCell>
+                            <TableCell sx={{ color: "var(--text)", fontWeight: "bold" }}>TOTAL AMOUNT</TableCell>
                         </TableRow>
                     </TableHead>
-                    <TableBody >
+                    <TableBody>
                         {currentBills.map((bill, index) => (
                             <Row key={index} bill={bill} />
                         ))}
@@ -106,9 +105,7 @@ function BillHistoryTable() {
                 </Table>
             </TableContainer>
 
-            {/* Pagination Controls */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', backgroundColor: 'var(--background-1)', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
-
                 <Typography variant="body1">
                     Page {currentPage} of {totalPages}
                 </Typography>
@@ -133,12 +130,17 @@ function Row({ bill }) {
         0
     );
 
+    const formattedDate = new Date(bill.date).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
+
     return (
         <>
             <TableRow>
-                <TableCell >
+                <TableCell>
                     <IconButton
-                    sx={{color:"var(--text)"}}
+                        sx={{ color: "var(--text)" }}
                         aria-label="expand row"
                         size="small"
                         onClick={() => setOpen(!open)}
@@ -146,37 +148,40 @@ function Row({ bill }) {
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
-                <TableCell sx={{color:"var(--text)"}}>{bill.customer_name}</TableCell>
-                <TableCell sx={{color:"var(--text)"}}>{bill.payment_method}</TableCell>
-                <TableCell sx={{color:"var(--text)"}}>₹{total.toFixed(2)}</TableCell>
+                <TableCell sx={{ color: "var(--text)" }}>{bill.bill_id}</TableCell>
+                <TableCell sx={{ color: "var(--text)" }}>{bill.customer_name}</TableCell>
+                <TableCell sx={{ color: "var(--text)" }}>{bill.payment_method}</TableCell>
+                <TableCell sx={{ color: "var(--text)" }}>{formattedDate}</TableCell>
+                <TableCell sx={{ color: "var(--text)" }}>₹{total.toFixed(2)}</TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ padding: '10px', border: '1px solid var(--border-color)', margin: "10px 100px", borderRadius: '4px', padding:"10px 10px 0px 10px"}}>
-                            {/* <Typography sx={{color:"var(--text)"}} variant="subtitle1" gutterBottom>
-                                Items Purchased
-                            </Typography> */}
+                        <Box sx={{ padding: '10px', border: '1px solid var(--border-color)', margin: "10px 100px", borderRadius: '4px', padding: "10px 10px 0px 10px" }}>
                             <Table size="small" aria-label="items">
-                                <TableHead sx={{backgroundColor:"lightgray"}}>
+                                <TableHead sx={{ backgroundColor: "var(--table-header)" }}>
                                     <TableRow>
-                                        <TableCell sx={{color:"var(--text)", fontWeight:"bold"}}>Product Name</TableCell>
-                                        <TableCell align="right" sx={{color:"var(--text)", fontWeight:"bold"}}>Quantity</TableCell>
-                                        <TableCell align="right" sx={{color:"var(--text)", fontWeight:"bold"}}>Unit Price</TableCell>
-                                        <TableCell align="right" sx={{color:"var(--text)", fontWeight:"bold"}}>Subtotal</TableCell>
+                                        <TableCell sx={{ color: "var(--text)", fontWeight: "bold" }}>Product Name</TableCell>
+                                        <TableCell align="right" sx={{ color: "var(--text)", fontWeight: "bold" }}>Quantity</TableCell>
+                                        <TableCell align="right" sx={{ color: "var(--text)", fontWeight: "bold" }}>Unit Price</TableCell>
+                                        <TableCell align="right" sx={{ color: "var(--text)", fontWeight: "bold" }}>Subtotal</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {(bill.items || []).map((item, idx) => (
                                         <TableRow key={idx}>
-                                            <TableCell sx={{color:"var(--text)", padding:"10px"}}>{item.product_name}</TableCell>
-                                            <TableCell align="right" sx={{color:"var(--text)"}}>{item.quantity}</TableCell>
-                                            <TableCell align="right" sx={{color:"var(--text)"}}>₹{item.unit_price}</TableCell>
-                                            <TableCell align="right" sx={{color:"var(--text)"}}>₹{(item.unit_price * item.quantity).toFixed(2)}</TableCell>
+                                            <TableCell sx={{ color: "var(--text)", padding: "10px" }}>{item.product_name}</TableCell>
+                                            <TableCell align="right" sx={{ color: "var(--text)" }}>{item.quantity}</TableCell>
+                                            <TableCell align="right" sx={{ color: "var(--text)" }}>₹{item.unit_price}</TableCell>
+                                            <TableCell align="right" sx={{ color: "var(--text)" }}>₹{(item.unit_price * item.quantity).toFixed(2)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
+                            <div style={{ fontSize: "18px", display: "flex", justifyContent: "flex-end", padding: "10px", color: "var(--text)" }}>
+                                <b>Total amount:</b>  ₹{total.toFixed(2)}
+                            </div>
+
                         </Box>
                     </Collapse>
                 </TableCell>
