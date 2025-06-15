@@ -1,12 +1,10 @@
-const { post_database, get_database } = require("../../config/db_utils");
+const { get_database,post_database } = require("../../config/db_utils");
 
 exports.post_bill = async (req, res) => {
   try {
-    const { bill_id, customer_name, total_amount, payment_method, items } =
-      req.body;
+    const { customer_name, total_amount, payment_method, items } = req.body;
 
     if (
-      !bill_id ||
       !customer_name ||
       !total_amount ||
       !payment_method ||
@@ -17,18 +15,19 @@ exports.post_bill = async (req, res) => {
     }
 
     const billQuery = `
-            INSERT INTO bills (bill_id, customer_name, toatal_amount, payment_method, status)
-            VALUES (?, ?, ?, ?, '1', CURRENT_TIMESTAMP)
-        `;
-    const billParams = [bill_id, customer_name, total_amount, payment_method];
+      INSERT INTO bills (customer_name, total_amount, payment_method, status, createdAt)
+      VALUES (?, ?, ?, '1', CURRENT_TIMESTAMP)
+    `;
+    const billParams = [customer_name, total_amount, payment_method];
     const billResult = await post_database(billQuery, billParams);
-
-    const insertedBillId = billResult.insertId;
+    console.log("Bill insert result:", billResult); 
+    const insertedBillId = billResult.result.insertId;
+    console.log("Inserted Bill ID:", insertedBillId);
 
     const detailQuery = `
-            INSERT INTO bill_details (bill_id, product_name, quantity, unit_price, total_price, status, )
-            VALUES ?
-        `;
+      INSERT INTO bill_details (bill_id, product_name, quantity, unit_price, total_price, status, createdAt)
+      VALUES ?
+    `;
 
     const detailValues = items.map((item) => [
       insertedBillId,
@@ -37,7 +36,7 @@ exports.post_bill = async (req, res) => {
       item.unit_price,
       item.unit_price * item.quantity,
       "1",
-      new Date(),
+      new Date()
     ]);
 
     await post_database(detailQuery, [detailValues]);
@@ -56,9 +55,8 @@ exports.get_bills = async (req, res) => {
     let query = `
       SELECT 
         b.id AS bill_id,
-        b.bill_id AS external_bill_id,
         b.customer_name,
-        b.toatal_amount,
+        b.total_amount,
         b.payment_method,
         b.createdAt AS bill_created_at,
         d.id AS item_id,
@@ -83,7 +81,7 @@ exports.get_bills = async (req, res) => {
     }
 
     if (bill_id) {
-      query += ` AND b.bill_id LIKE ?`;
+      query += ` AND b.id LIKE ?`;
       params.push(`%${bill_id}%`);
     }
 
