@@ -3,7 +3,7 @@ import { Input, InputNumber, Button, Form, message } from "antd";
 import axios from "axios";
 import { QRCodeCanvas } from "qrcode.react";
 import requestApi from "../../components/utils/axios";
-import "./qrCode.css";
+import "./generateQR.css";
 
 export default function QRForm() {
   const [form] = Form.useForm();
@@ -43,7 +43,7 @@ export default function QRForm() {
       formData.append("qr_image", blob, `${values.product_id}.png`);
       formData.append("product_id", values.product_id);
 
-      await requestApi("POST","/products/qr_products", formData, {
+      await requestApi("POST", "/products/qr_products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

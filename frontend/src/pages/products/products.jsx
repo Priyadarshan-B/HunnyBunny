@@ -1,49 +1,36 @@
+// components/Products/Products.jsx
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  Card,
-  DatePicker,
-  Spin,
-  message,
-  Popconfirm,
-  Button,
-  Input,
-  Select 
-} from "antd";
-import {
-  EditOutlined,
-  DeleteOutlined,
-  SaveOutlined,
-  CloseOutlined,
-  PlusOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
-import PrintIcon from '@mui/icons-material/Print';
-import dayjs from "dayjs";
-import requestApi from "../../components/utils/axios";
-import apiHost from "../../components/utils/api";
-import "./products.css";
+import { message, Spin } from "antd";
 import { debounce } from "lodash";
+import requestApi from "../../components/utils/axios";
 import StickerModal from "../../components/stickerModal/stickerModal";
+import SearchBar from "./SearchBar";
+import ProductCard from "./ProductCard";
+import EditProductModal from "./EditProductModal";
+import "./products.css";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [quantity, setQunatity] = useState([])
+  const [quantity, setQuantity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editStates, setEditStates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [stickerCount, setStickerCount] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+  const [currentEditState, setCurrentEditState] = useState({});
+
 
   const fetchProducts = async (term = "") => {
     try {
       setLoading(true);
       const res = await requestApi("GET", `/products/qr_products?term=${term}`);
       setProducts(res.data);
-
       const initialStates = {};
       res.data.forEach((prod) => {
-        initialStates[prod.id] = {qty : null, pkd: null, exp: null, editing: false };
+        initialStates[prod.id] = { qty: null, pkd: null, exp: null, editing: false };
       });
       setEditStates(initialStates);
     } catch {
@@ -53,76 +40,76 @@ const Products = () => {
       setLoading(false);
     }
   };
-  const fetchQuantity = async ()=>{
-    try{
-      setLoading(true)
-      const res = await requestApi("GET", "/products/qty")
-       const formatted = res.data.map(qty => ({
-          value: qty.quantity, 
-          label: `${qty.quantity} - ${qty.expansion}`, 
-        }));
-        setQunatity(formatted)
-    }catch(error){
-       console.error('Failed to fetch quantities:', error);
+
+
+  const fetchQuantity = async () => {
+    try {
+      setLoading(true);
+      const res = await requestApi("GET", "/products/qty");
+      const formatted = res.data.map(qty => ({
+        value: qty.quantity,
+        label: `${qty.quantity} - ${qty.expansion}`,
+      }));
+      setQuantity(formatted);
+    } catch (error) {
+      console.error('Failed to fetch quantities:', error);
+    } finally {
+      setLoading(false);
     }
-    finally{
-      setLoading(false)
-    }
-  }
+  };
+
   useEffect(() => {
     fetchProducts();
-    fetchQuantity()
+    fetchQuantity();
   }, []);
 
-  const debouncedSearch = useCallback(
-    debounce((value) => fetchProducts(value), 400),
-    []
-  );
+  const debouncedSearch = useCallback(debounce((value) => fetchProducts(value), 400), []);
 
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value.trim());
-      debouncedSearch(value);
+    debouncedSearch(value);
   };
 
-  const handleEdit = (id) =>
-    setEditStates((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], editing: true },
-    }));
-
-  const handleSave = (id) => {
-    const {qty, pkd, exp } = editStates[id];
-    console.log("Save product:", id, {qty, pkd, exp });
-    setEditStates((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], editing: false },
-    }));
+  const handleEdit = (product) => {
+    setCurrentProduct(product);
+    setCurrentEditState(editStates[product.id]);
+    setEditModalVisible(true);
   };
 
-  const handleCancel = (id) =>
+
+  const handleModalSave = () => {
+    if (!currentProduct) return;
+    const id = currentProduct.id;
     setEditStates((prev) => ({
       ...prev,
-      [id]: {qty:null, pkd: null, exp: null, editing: false },
+      [id]: { ...currentEditState, editing: false },
     }));
+    setEditModalVisible(false);
+  };
 
-  const handleDelete = (id) =>
-    setEditStates((prev) => ({
-      ...prev,
-      [id]: { qty:null,pkd: null, exp: null, editing: false },
-    }));
 
-    const handleQtyChange = (id, value) => {
-  setEditStates((prev) => ({
+  const handleCancel = (id) => setEditStates((prev) => ({
     ...prev,
-    [id]: { ...prev[id], qty: value },
+    [id]: { qty: null, pkd: null, exp: null, editing: false }
   }));
-};
+
+  const handleDelete = (id) => setEditStates((prev) => ({
+    ...prev,
+    [id]: { qty: null, pkd: null, exp: null, editing: false }
+  }));
+
+  const handleQtyChange = (id, value) => {
+    setEditStates((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], qty: value }
+    }));
+  };
 
   const handleDateChange = (id, type, _, dateString) => {
     setEditStates((prev) => ({
       ...prev,
-      [id]: { ...prev[id], [type]: dateString },
+      [id]: { ...prev[id], [type]: dateString }
     }));
   };
 
@@ -132,177 +119,53 @@ const Products = () => {
     setStickerCount(1);
   };
 
-  // if (loading) return <Spin />;
-
   return (
     <div>
-      <Input
-        prefix={<SearchOutlined />}
-        placeholder="Search by name or code"
-        allowClear
-        value={searchTerm}
-        onChange={handleSearch}
-        style={{ marginBottom: 24, width: 400, backgroundColor: "var(--background-1)", border: "1px solid var(--border-color)", color: "var(--text)", color: "var(--text)", borderRadius: "5px" }}
-      />
-      <>
-
-        {products.length > 0 ? <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-          {products.map((product) => {
-            const state = editStates[product.id] || {};
-            return (
-              <Card
-                key={product.id}
-                className="custom-card"
-                style={{ width: 400 }}
-                actions={[
-                  state.editing ? (
-                    <Popconfirm
-                      style={{ color: "#4bf478", fontSize: "20px" }}
-                      title="Save changes?"
-                      onConfirm={() => handleSave(product.id)}
-                    >
-                      <SaveOutlined style={{ color: "#635bff", fontSize: "20px" }} key="save" />
-                    </Popconfirm>
-                  ) : (
-                    <EditOutlined
-                      style={{ color: "#4bf478", fontSize: "20px" }}
-                      onClick={() => handleEdit(product.id)}
-                    />
-                  ),
-                  state.editing ? (
-                    <Popconfirm
-                      title="Discard changes?"
-                      onConfirm={() => handleCancel(product.id)}
-                    >
-                      <CloseOutlined style={{ color: "red", fontSize: "20px" }} key="cancel" />
-                    </Popconfirm>
-                  ) : (
-                    <Popconfirm
-                      title="Delete dates?"
-                      style={{ color: "#b20900", fontSize: "20px" }}
-                      onConfirm={() => handleDelete(product.id)}
-                    >
-                      <DeleteOutlined
-                        style={{ color: "#b20900", fontSize: "20px" }}
-                        key="delete"
-                      />
-                    </Popconfirm>
-                  ),
-                ]}
-              >
-                <Button
-                  icon={<PrintIcon style={{ color: "#616773" }} />}
-                  type="text"
-                  shape="circle"
-                  style={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
-                  onClick={(e) => {
-                    // if (["svg", "path", "SPAN"].includes(e.target.tagName)) return;
-                    openStickerModal(product);
-                  }}
-                />
-
-                <div className="flex gap-30">
-
-                  <div className="flex flex-1 flex-col items-center justify-center">
-
-                    <img
-                      src={`${apiHost}/public/${product.qr_code}`}
-                      alt="QR code"
-                      className="w-24 h-24 object-contain bg-white p-1"
-                    />
-                    <p className="text-sm font-semibold mt-2">
-                      {product.code}
-                    </p>
-                  </div>
-                  <div className="flex flex-1 flex-col justify-between w-full">
-                    <p className="text-lg font-bold">
-                      <b>{product.name}</b>
-                    </p>
-                    <p>₹ {product.price}</p>
-                {/* {state.qty && state.qty.length > 0 ? (
- null
-) : <p>
-    <b>Qty:</b> {product.product_quantity}
-  </p>} */}
-                    {state.editing ? (
-                      <>
-                      <Select
-      showSearch
-      placeholder="Select a quantity"
-      loading={loading}
-      value={editStates[product.id]?.qty || null}
-  onChange={(value) => handleQtyChange(product.id, value)}
-      filterOption={(input, option) =>
-        option.label.toLowerCase().includes(input.toLowerCase())
-      }
-      options={quantity}
-        style={{ width: 200 }}
-
-    />
-                        <DatePicker
-                          placeholder="Packed Date"
-                          onChange={(d, ds) =>
-                            handleDateChange(product.id, "pkd", d, ds)
-                          }
-                          className="border border-[var(--border-color)] [background-color:var(--background)] text-[var(--text)]"
-                          format="DD-MM-YYYY"
-                          style={{ width: "100%" }}
-                        />
-                        <DatePicker
-                          placeholder="Expiry Date"
-                          onChange={(d, ds) =>
-                            handleDateChange(product.id, "exp", d, ds)
-                          }
-                          className="border border-[var(--border-color)] [background-color:var(--background)] text-[var(--text)]"
-                          format="DD-MM-YYYY"
-                          minDate={
-                            state.pkd ? dayjs(state.pkd, "DD-MM-YYYY") : null
-                          }
-                          style={{ width: "100%" }}
-                        />
-                        <p>
-                          <b>Qty:</b> {product.product_quantity} {state.qty || "--"}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                      <p>
-                          <b>Qty:</b> {product.product_quantity} {state.qty || "--"}
-                        </p>
-                        <p>
-                          <b>pkd:</b> {state.pkd || "--"}
-                        </p>
-                        <p>
-                          <b>exp:</b> {state.exp || "--"}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+      <SearchBar searchTerm={searchTerm} handleSearch={handleSearch} loading={loading} />
+      {loading ? <Spin /> : products.length > 0 ? (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              quantity={quantity}
+              state={editStates[product.id]}
+              handleEdit={handleEdit}
+              handleSave={handleModalSave}
+              handleCancel={handleCancel}
+              handleDelete={handleDelete}
+              handleQtyChange={handleQtyChange}
+              handleDateChange={handleDateChange}
+              openStickerModal={openStickerModal}
+            />
+          ))}
         </div>
-          :
-          <div>
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
-              <h2>No products found</h2>
-            </div>
-          </div>
-        }
+      ) : (
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <h2>No products found</h2>
+        </div>
+      )}
+      <StickerModal
+        visible={modalVisible}
+        product={selectedProduct}
+        onClose={() => setModalVisible(false)}
+        stickerCount={stickerCount}
+        setStickerCount={setStickerCount}
+        editStates={editStates}
+      />
 
-        {/* sticker modal */}
-        <StickerModal
-          visible={modalVisible}
-          product={selectedProduct}
-          onClose={() => setModalVisible(false)}
-          stickerCount={stickerCount}
-          setStickerCount={setStickerCount}
-          editStates={editStates}
-        />
-      </>
+      <EditProductModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onSave={handleModalSave}
+        product={currentProduct}
+        editState={currentEditState}
+        setEditState={setCurrentEditState}
+        quantityOptions={quantity}
+      />
+
     </div>
-  );  
+  );
 };
 
 export default Products;
