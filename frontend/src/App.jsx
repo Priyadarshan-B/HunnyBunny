@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import AppLayout from "./components/appLayout/Layout";
 import ToastMessage from "./components/toast/toast";
-import Scan from "./pages/Scan";
-import Dashboard from "./pages/Dashboard";
-import QRForm from "./pages/qrCode/qrCode";
-import History from "./pages/History";
+import Scan from "./pages/bill/Scan";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import QRForm from "./pages/GenerateQR/generateQR";
+import History from "./pages/history/history";
 import Products from "./pages/products/products";
 import Register from "./pages/loginPage/register";
 import Login from "./pages/loginPage/loginPage";

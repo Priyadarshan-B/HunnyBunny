@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import apiHost from "../components/utils/api";
-import QRScanner from '../components/QRScanner';
+import apiHost from "../../components/utils/api";
+import QRScanner from './QRScanner';
 
 
 

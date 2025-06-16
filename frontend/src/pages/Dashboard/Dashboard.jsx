@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import apiHost from "../components/utils/api";
+import apiHost from "../../components/utils/api";
 
 
 
@@ -11,7 +11,7 @@ function Body() {
 
     return (
         <div className='dashboard-page'>
-                dashboard
+            dashboard
 
         </div>
     );
