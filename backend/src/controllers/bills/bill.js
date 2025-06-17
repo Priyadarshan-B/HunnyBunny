@@ -1,4 +1,5 @@
 const { get_database,post_database } = require("../../config/db_utils");
+const {update_stock} = require("../../controllers/products/stocks");
 
 exports.post_bill = async (req, res) => {
   try {
@@ -41,10 +42,19 @@ exports.post_bill = async (req, res) => {
 
     await post_database(detailQuery, [detailValues]);
 
-    res.status(200).json({ message: "Bill and items saved successfully" });
+     for (const item of items) {
+      const result = await update_stock(
+        // item.product_code,
+        item.product_name,
+        item.quantity
+      );
+      console.log(`Stock updated for ${item.product_name}:`, result);
+    }
+
+    return res.status(200).json({ message: "Bill and items saved successfully" });
   } catch (error) {
     console.error("Error inserting bill:", error);
-    res.status(500).json({ error: "Failed to insert bill and items" });
+    return res.status(500).json({ error: "Failed to insert bill and items" });
   }
 };
 
