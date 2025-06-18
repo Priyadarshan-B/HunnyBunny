@@ -3,6 +3,7 @@ import "./Layout.css";
 import requestApi from "../utils/axios";
 import { Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { encryptData, decryptData } from "../utils/encrypt";
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import HistoryIcon from '@mui/icons-material/History';
@@ -48,15 +49,33 @@ function SideBar(props) {
     }, []);
 
     const fetchSidebarSections = async () => {
+        const cacheKey = "sidebar";
+        const encryptedData = sessionStorage.getItem(cacheKey);
+
+        if (encryptedData) {
+            const decrypted = decryptData(encryptedData);
+            if (decrypted) {
+                setSidebarSections(decrypted);
+                return;
+            }
+        }
+
         try {
             const role = userInfo?.role || 2;
-            const data = await requestApi("POST", "/auth/resources", { role });
-            // console.log("Sidebar sections data:", data.data);
-            setSidebarSections(data.data);
+            const response = await requestApi("POST", "/auth/resources", { role });
+
+            if (response?.data) {
+                const encrypted = encryptData(response.data);
+                sessionStorage.setItem(cacheKey, encrypted);
+                setSidebarSections(response.data);
+            } else {
+                console.warn("No data received for sidebar sections.");
+            }
         } catch (error) {
             console.error("Error fetching sidebar sections:", error);
         }
     };
+
 
     useEffect(() => {
         if (userInfo?.role) {
@@ -111,7 +130,7 @@ function SideBar(props) {
             >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "5px", fontWeight:"bold" }}>
+                        <div style={{ backgroundColor: "#ff7d67", padding: "5px 13px", borderRadius: "5px", fontWeight: "bold" }}>
                             {firstLetter}
                         </div>
                         <div>{displayUsername}</div>
@@ -120,10 +139,10 @@ function SideBar(props) {
                         {userDetailsOpen ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
                     </div>
                 </div>
-                
+
                 {userDetailsOpen && (
                     <div>
-                        <hr style={{color:"red"}}/>
+                        <hr style={{ color: "red" }} />
                         <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "var(--text)" }}>
                             <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
                             <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>

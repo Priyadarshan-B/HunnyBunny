@@ -1,2 +1,7 @@
 /.env
 public/qr-codes/*
+/node_modules
+/dist
+/public
+/public/qr-codes
+

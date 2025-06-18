@@ -2,7 +2,7 @@
 import React from 'react';
 import {
     BarChart, Bar, PieChart, Pie, Cell, Tooltip,
-    ResponsiveContainer, XAxis, YAxis, Legend, Divider
+    ResponsiveContainer, XAxis, YAxis, Legend
 } from "recharts";
 import './Dashboard.css';
 
@@ -13,7 +13,6 @@ const DashboardCharts = ({ topProducts }) => {
         <div className="dashboard-graphs">
             <div className="chart-container">
                 <h3>Top 5 Products by Stock</h3>
-                <Divider />
                 <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={topProducts}>
                         <XAxis dataKey="name" />
