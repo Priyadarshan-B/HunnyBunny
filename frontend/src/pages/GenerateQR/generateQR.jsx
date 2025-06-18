@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import { Input, InputNumber, Button, Form, message } from "antd";
-import axios from "axios";
 import { QRCodeCanvas } from "qrcode.react";
 import requestApi from "../../components/utils/axios";
 import "./generateQR.css";
+import { showSuccess, showError, showWarning } from "../../components/toast/toast";
 
 export default function QRForm() {
   const [form] = Form.useForm();
@@ -19,7 +19,7 @@ export default function QRForm() {
       setQrId(productId);
       setIsQRGenerated(true);
     } catch {
-      message.warning("Please fill all required fields before generating QR.");
+      showWarning("Please fill all required fields before generating QR.");
     }
   };
 
@@ -27,9 +27,10 @@ export default function QRForm() {
     setLoading(true);
     try {
       const values = await form.validateFields();
+
       const canvas = qrRef.current?.querySelector("canvas");
       if (!canvas) {
-        message.error("QR code not found.");
+        showError("QR code not found.");
         return;
       }
 
@@ -47,13 +48,39 @@ export default function QRForm() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      message.success("Product saved successfully!");
+      showSuccess("Product saved successfully!");
       form.resetFields();
       setIsQRGenerated(false);
       setQrId(null);
     } catch (err) {
       console.error(err);
-      message.error("Failed to save product.");
+      showError("Failed to save product.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveWithoutQR = async () => {
+    setLoading(true);
+    try {
+      const values = await form.validateFields();
+
+      const payload = {
+        product_id: values.product_id,
+        name: values.name,
+        price: values.price,
+        quantity: values.quantity,
+      };
+
+      await requestApi("POST", "/products/qr_products", payload);
+
+      showSuccess("Product saved without QR code!");
+      form.resetFields();
+      setIsQRGenerated(false);
+      setQrId(null);
+    } catch (err) {
+      console.error(err);
+      showError("Failed to save product without QR.");
     } finally {
       setLoading(false);
     }
@@ -99,14 +126,24 @@ export default function QRForm() {
               <InputNumber style={{ backgroundColor: "var(--document)" }} min={1} className="w-full border border-[var(--border-color)] text-[var(--text)]" />
             </Form.Item>
 
-            <Button
-              style={{ backgroundColor: "#635bff", color: "var(--text)", border: "none" }}
-              type="default"
-              onClick={handleGenerateQR}
-              className="w-full mt-2"
-            >
-              Generate QR
-            </Button>
+            <div className="flex gap-2 mt-2 float-right">
+              <Button
+                style={{ backgroundColor: "#635bff", color: "white", border: "none" }}
+                type="default"
+                onClick={handleGenerateQR}
+              >
+                Generate QR
+              </Button>
+
+              <Button
+                style={{ backgroundColor: "#2196f3", color: "white", border: "none" }}
+                type="default"
+                onClick={handleSaveWithoutQR}
+                loading={loading}
+              >
+                Save without QR
+              </Button>
+            </div>
           </Form>
         </div>
 
@@ -120,7 +157,7 @@ export default function QRForm() {
               </p>
 
               <Button
-                style={{ backgroundColor: "green", color: "var(--text)", border: "none" }}
+                style={{ backgroundColor: "green", color: "white", border: "none" }}
                 type="primary"
                 onClick={handleSubmit}
                 loading={loading}

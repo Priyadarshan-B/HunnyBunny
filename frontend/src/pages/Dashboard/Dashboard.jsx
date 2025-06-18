@@ -7,6 +7,8 @@ import DashboardStats from "./DashboardStats";
 import DashboardCharts from "./DashboardCharts";
 import ProductDrawerChart from "./ProductDrawerChart";
 import ProductTable from "./ProductTable";
+import TodayProductSales from "./TodayProductSales";
+
 
 const ITEMS_PER_PAGE = 15;
 
@@ -59,15 +61,19 @@ function Dashboard(props) {
                 totalValue={totalValue}
             />
 
-            <div style={{ textAlign: "right", marginBottom: "10px" }}>
+            {/* <div style={{ textAlign: "right", marginBottom: "10px" }}>
                 <Button type="primary" onClick={() => setDrawerOpen(true)}>
                     View Full Stock Graph
                 </Button>
-            </div>
+            </div> */}
 
-            <DashboardCharts topProducts={topProducts} />
+            <DashboardCharts
+                topProducts={topProducts}
+                setDrawerOpen={setDrawerOpen}
+            />
 
-            <ProductTable products={products} />
+
+
 
             <ProductDrawerChart
                 drawerOpen={drawerOpen}
@@ -78,6 +84,15 @@ function Dashboard(props) {
                 currentPage={currentPage}
                 totalProducts={products.length}
             />
+
+            <div style={{
+                display: "flex",
+                gap: "10px"
+            }}>
+                <ProductTable products={products} />
+                <TodayProductSales />
+            </div>
+
         </div>
     );
 }
