@@ -16,6 +16,7 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import axios from 'axios';
+import requestApi from '../../components/utils/axios';
 
 function History() {
     return <BillHistoryTable />;
@@ -40,9 +41,9 @@ function BillHistoryTable() {
         const fetchBills = async () => {
             try {
                 const url = debouncedSearch
-                    ? `http://localhost:5000/bills/bill-details?name=${debouncedSearch}`
-                    : `http://localhost:5000/bills/bill-details`;
-                const response = await axios.get(url);
+                    ? `/bills/bill-details?name=${debouncedSearch}`
+                    : `/bills/bill-details`;
+                const response = await requestApi("GET",url);
                 setBills(response.data);
             } catch (error) {
                 console.error('Error fetching bills:', error);

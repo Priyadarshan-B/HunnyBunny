@@ -1,4 +1,3 @@
-// src/components/QRScanner/QRScanner.jsx
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import QRWebcam from "./QRWebcam";
 import ProductTable from "./ProductTable";
@@ -8,6 +7,8 @@ import generatePDF from "../../components/utils/pdfGenerator";
 import axios from "axios";
 import apiHost from "../../components/utils/api";
 import "./QRScanner.css";
+import { showSuccess, showError } from "../../components/toast/toast";
+import requestApi from "../../components/utils/axios";
 
 const QRScanner = () => {
     const webcamRef = useRef(null);
@@ -126,12 +127,12 @@ const QRScanner = () => {
         };
 
         try {
-            await axios.post(`${apiHost}/bills/bill-details`, payload);
-            alert("Bill saved successfully!");
+            await requestApi("POST",`/bills/bill-details`, payload);
+            showSuccess("Bill saved successfully!");
             handlePreviewBill();
             handleClearAll();
         } catch {
-            alert("Error saving bill.");
+            showError("Failed to save bill.");
         }
     };
 

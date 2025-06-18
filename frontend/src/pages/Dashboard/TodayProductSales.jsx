@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import axios from "axios";
+import requestApi from "../../components/utils/axios";
 
 const ROWS_PER_PAGE_OPTIONS = [5, 10, 15];
 
@@ -19,7 +20,7 @@ const TodayProductSales = () => {
     const fetchSales = async (selectedDate) => {
         try {
             setLoading(true);
-            const res = await axios.get(`http://localhost:5000/dashboard/tdy-products?date=${selectedDate}`);
+            const res = await requestApi("GET",`/dashboard/tdy-products?date=${selectedDate}`);
             setSales(res.data);
         } catch (err) {
             console.error("Failed to fetch sales data", err);
