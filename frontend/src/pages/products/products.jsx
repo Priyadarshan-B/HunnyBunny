@@ -28,6 +28,7 @@ const Products = () => {
       setLoading(true);
       const res = await requestApi("GET", `/products/qr_products?term=${term}`);
       setProducts(res.data);
+      console.log("Fetched products:", res.data);
       const initialStates = {};
       res.data.forEach((prod) => {
         initialStates[prod.id] = { qty: null, pkd: null, exp: null, editing: false };

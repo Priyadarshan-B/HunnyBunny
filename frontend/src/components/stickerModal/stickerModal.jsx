@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import apiHost from "../../components/utils/api";
+import { toWords } from "number-to-words";
 
 const StickerModal = ({
   visible,
@@ -16,6 +17,7 @@ const StickerModal = ({
 }) => {
   const previewRef = useRef(null);
 
+
   const generatePDFPreview = async () => {
     const input = previewRef.current;
     if (!input) return;
@@ -26,46 +28,44 @@ const StickerModal = ({
     stickerWrapper.style.top = "0";
     document.body.appendChild(stickerWrapper);
 
-    for (let i = 0; i < stickerCount; i++) {
-      const clone = input.cloneNode(true);
-      clone.style.margin = "2";   //value changed from 0 to 2
-      clone.style.display = "inline-block";
-      stickerWrapper.appendChild(clone);
-    }
-
-    // Set sticker dimensions in mm
-    const stickerWidth = 50; // mm (True-Ally size)
+    const stickerWidth = 50; // mm
     const stickerHeight = 25; // mm
+    const gap = 3; // mm between stickers (both horizontal and vertical)
     const stickersPerRow = 2;
+
+    const totalRows = Math.ceil(stickerCount / stickersPerRow);
+    const rowHeight = stickerHeight + gap;
+    const pageHeight = totalRows * rowHeight;
+    const pageWidth = (stickerWidth * stickersPerRow) + gap; // 50 + 3 + 50 = 103mm
 
     const pdf = new jsPDF({
       unit: "mm",
-      format: "a4",
+      format: [pageWidth, pageHeight],
     });
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
 
     for (let i = 0; i < stickerCount; i++) {
-      const singleStickerCanvas = await html2canvas(input, {
+      const clone = input.cloneNode(true);
+      clone.style.margin = "0";
+      clone.style.display = "inline-block";
+      stickerWrapper.appendChild(clone);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const canvas = await html2canvas(clone, {
         useCORS: true,
         scale: 2,
       });
-      const stickerImage = singleStickerCanvas.toDataURL("image/png");
 
-      const px = (i % stickersPerRow) * stickerWidth;
-      const py =
-        (Math.floor(i / stickersPerRow) %
-          Math.floor(pdfHeight / stickerHeight)) *
-        stickerHeight;
+      const imgData = canvas.toDataURL("image/png");
 
-      if (
-        i > 0 &&
-        i % (stickersPerRow * Math.floor(pdfHeight / stickerHeight)) === 0
-      ) {
-        pdf.addPage();
-      }
+      const row = Math.floor(i / stickersPerRow);
+      const col = i % stickersPerRow;
 
-      pdf.addImage(stickerImage, "PNG", px, py, stickerWidth, stickerHeight);
+      const x = col * (stickerWidth + gap);
+      const y = row * (stickerHeight + gap);
+
+      pdf.addImage(imgData, "PNG", x, y, stickerWidth, stickerHeight);
+      stickerWrapper.removeChild(clone);
     }
 
     document.body.removeChild(stickerWrapper);
@@ -130,18 +130,18 @@ const StickerModal = ({
                       pkd:{" "}
                       {editStates[product.id]?.pkd
                         ? dayjs(
-                            editStates[product.id].pkd,
-                            "DD-MM-YYYY"
-                          ).format("DD-MM-YYYY")
+                          editStates[product.id].pkd,
+                          "DD-MM-YYYY"
+                        ).format("DD-MM-YYYY")
                         : "--"}
                     </p>
                     <p style={{ fontWeight: "400", fontSize: "8px" }}>
                       exp:{" "}
                       {editStates[product.id]?.exp
                         ? dayjs(
-                            editStates[product.id].exp,
-                            "DD-MM-YYYY"
-                          ).format("DD-MM-YYYY")
+                          editStates[product.id].exp,
+                          "DD-MM-YYYY"
+                        ).format("DD-MM-YYYY")
                         : "--"}
                     </p>
                   </div>

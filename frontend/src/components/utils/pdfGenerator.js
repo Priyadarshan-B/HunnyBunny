@@ -2,7 +2,20 @@ import jsPDF from "jspdf";
 import { toWords } from "number-to-words";
 
 const generatePDF = (products, totalAmount) => {
-  const doc = new jsPDF({ unit: "pt", format: [226.77, 1000] });
+  const lineHeight = 12;
+  const headerLines = 9;
+  const footerLines = 12;
+  const productLines = products.length;
+  const contentLines = headerLines + productLines + footerLines;
+
+  // 12pt line height * total lines + extra 60pt buffer
+  const pageHeight = contentLines * lineHeight + 60;
+
+  const doc = new jsPDF({
+    unit: "pt",
+    format: [226.77, pageHeight],
+  });
+
   const startX = 10;
   let y = 20;
 
@@ -10,6 +23,7 @@ const generatePDF = (products, totalAmount) => {
   doc.setFontSize(13);
   doc.text("HUNNY BUNNY", 113, y, { align: "center" });
   y += 15;
+
   doc.setFontSize(9);
   doc.text("TIRUCHENGODE ROAD CORNER", 113, y, { align: "center" });
   y += 12;
@@ -51,20 +65,21 @@ const generatePDF = (products, totalAmount) => {
   y += 12;
 
   doc.text(`Items : ${products.length}`, startX, y);
-  //   y += 12;
-
   doc.text(`Total Amt : ${totalAmount.toFixed(2)}`, startX + 100, y);
   y += 12;
 
-  doc.text(`Round off : 0.00`, startX, y);
+  doc.text("Round off : 0.00", startX, y);
   y += 12;
   doc.text("-----------------------------", 113, y, { align: "center" });
   y += 12;
+
   doc.text("N E T   A M O U N T", 113, y, { align: "center" });
   y += 12;
+
   doc.setFont("Courier", "bold");
   doc.text(`INR ${totalAmount.toFixed(2)}`, 113, y, { align: "center" });
   y += 12;
+
   const totalRupees = Math.floor(totalAmount);
   const totalPaise = Math.round((totalAmount - totalRupees) * 100);
 
@@ -73,14 +88,12 @@ const generatePDF = (products, totalAmount) => {
     amountInWords += ` and ${toWords(totalPaise)} Paise`;
   }
   amountInWords += " Only";
-doc.setFontSize(8)
-  doc.text(`(${amountInWords})`, 113, y, { align: "center" });
-//   doc.text(`( Rupees ${totalAmount.toFixed(2)} Only )`, 113, y, {
-//     align: "center",
-//   });
-  y += 12;
-  doc.setFont("Courier", "normal");
 
+  doc.setFontSize(8);
+  doc.text(`(${amountInWords})`, 113, y, { align: "center" });
+  y += 12;
+
+  doc.setFont("Courier", "normal");
   doc.text("-----------------------------", 113, y, { align: "center" });
   y += 15;
 
@@ -90,9 +103,11 @@ doc.setFontSize(8)
     align: "center",
   });
   y += 12;
+
   doc.setFont("Courier", "bold");
   doc.text("!! Thanks !!! Visit Again !!", 113, y, { align: "center" });
   y += 12;
+
   doc.setFont("Courier", "normal");
   doc.text("For Order & Enquiry", 113, y, { align: "center" });
   y += 12;
