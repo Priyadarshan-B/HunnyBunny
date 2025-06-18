@@ -10,6 +10,8 @@ import HistoryIcon from '@mui/icons-material/History';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import FormatListBulletedAddIcon from '@mui/icons-material/FormatListBulletedAdd';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 function getIconComponent(iconPath, isActive) {
     const iconColor = isActive ? '#ffffff' : '#616773';
@@ -22,6 +24,10 @@ function getIconComponent(iconPath, isActive) {
             return <HistoryIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         case 'ScheduleSendIcon':
             return <ScheduleSendIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
+        case 'FormatListBulletedAddIcon':
+            return <FormatListBulletedAddIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
+        case 'ShoppingCartIcon':
+            return <ShoppingCartIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         default:
             return null;
     }

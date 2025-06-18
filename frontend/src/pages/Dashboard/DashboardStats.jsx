@@ -6,15 +6,15 @@ const DashboardStats = ({ totalProducts, totalStock, totalValue }) => {
         <div className="dashboard-cards">
             <div className="card">
                 <div className="ribbon r1">Products</div>
-                Total Products: <span>{totalProducts}</span>
+                <span>Total Products</span> {totalProducts}
             </div>
             <div className="card">
                 <div className="ribbon r2">Stock</div>
-                Total Stock: <span>{totalStock}</span>
+                <span>Total Stock </span>{totalStock}
             </div>
             <div className="card">
                 <div className="ribbon r3">Value</div>
-                Total Value: <span>₹ {totalValue.toFixed(2)}</span>
+                <span>Total Value </span>₹ {totalValue.toFixed(2)}
             </div>
         </div>
     );
