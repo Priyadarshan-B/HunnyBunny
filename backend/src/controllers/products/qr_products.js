@@ -25,18 +25,18 @@ exports.post_qr_products = async (req, res) => {
     }
     const checkQuery = `
       SELECT id , product_quantity, qr_code FROM qr_products 
-      WHERE product_code = ? OR product_name = ? OR product_price = ?
+      WHERE  product_name = ? 
       LIMIT 1
     `;
-    const matched = await post_database(checkQuery, [product_id, name, price]);
+    const matched = await get_database(checkQuery, [name]);
     // console.log("Matched Products:", matched);
-    if (matched.result.length > 0) {
-      const existingQRCode = matched.result[0].qr_code;
+    if (matched.length > 0) {
+      const existingQRCode = matched[0].qr_code;
       const finalQRCode =
         existingQRCode && existingQRCode.trim() !== ""
           ? existingQRCode
           : qr_Path;
-      // console.log("Matching product found:", matched.result[0].id , matched.result[0].product_quantity);
+      // console.log("Matching product found:", matched[0].id , matched[0].product_quantity);
       const updateQuery = `
         UPDATE qr_products
         SET product_price = ?, product_quantity = ?, product_name = ?, qr_code = ?
@@ -44,10 +44,10 @@ exports.post_qr_products = async (req, res) => {
       `;
       const updateParams = [
         price,
-        parseInt(matched.result[0].product_quantity) + parseInt(quantity),
+        parseInt(matched[0].product_quantity) + parseInt(quantity),
         name,
         finalQRCode,
-        matched.result[0].id,
+        matched[0].id,
       ];
       await post_database(updateQuery, updateParams);
 

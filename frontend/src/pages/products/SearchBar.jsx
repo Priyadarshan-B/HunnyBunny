@@ -8,6 +8,7 @@ const SearchBar = ({ searchTerm, handleSearch, loading }) => (
         prefix={<SearchOutlined />}
         placeholder="Search by name or code"
         allowClear
+        type="text"
         value={searchTerm}
         onChange={handleSearch}
         disabled={loading}

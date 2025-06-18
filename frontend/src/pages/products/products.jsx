@@ -1,6 +1,5 @@
-// components/Products/Products.jsx
-import React, { useEffect, useState, useCallback } from "react";
-import { message, Spin } from "antd";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { message, Skeleton } from "antd";
 import { debounce } from "lodash";
 import requestApi from "../../components/utils/axios";
 import StickerModal from "../../components/stickerModal/stickerModal";
@@ -12,7 +11,8 @@ import "./products.css";
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [quantity, setQuantity] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true); // Specific loading state for products
+  const [initialLoad, setInitialLoad] = useState(true); // To prevent skeleton on initial search
   const [editStates, setEditStates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -22,40 +22,41 @@ const Products = () => {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [currentEditState, setCurrentEditState] = useState({});
 
-
   const fetchProducts = async (term = "") => {
     try {
-      setLoading(true);
+      setProductsLoading(true);
       const res = await requestApi("GET", `/products/qr_products?term=${term}`);
       setProducts(res.data);
       console.log("Fetched products:", res.data);
       const initialStates = {};
       res.data.forEach((prod) => {
-        initialStates[prod.id] = { qty: null, pkd: null, exp: null, editing: false };
+        initialStates[prod.id] = {
+          qty: null,
+          pkd: null,
+          exp: null,
+          editing: false,
+        };
       });
       setEditStates(initialStates);
     } catch {
       message.error("Failed to fetch products");
-      setSearchTerm("");
+      // setSearchTerm(""); 
     } finally {
-      setLoading(false);
+      setProductsLoading(false);
+      setInitialLoad(false); 
     }
   };
 
-
   const fetchQuantity = async () => {
     try {
-      setLoading(true);
       const res = await requestApi("GET", "/products/qty");
-      const formatted = res.data.map(qty => ({
+      const formatted = res.data.map((qty) => ({
         value: qty.quantity,
         label: `${qty.quantity} - ${qty.expansion}`,
       }));
       setQuantity(formatted);
     } catch (error) {
-      console.error('Failed to fetch quantities:', error);
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch quantities:", error);
     }
   };
 
@@ -64,20 +65,28 @@ const Products = () => {
     fetchQuantity();
   }, []);
 
-  const debouncedSearch = useCallback(debounce((value) => fetchProducts(value), 400), []);
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value) => {
+        fetchProducts(value);
+      }, 400),
+    []
+  );
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value.trim());
-    debouncedSearch(value);
-  };
+  const handleSearch = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchTerm(value); 
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
   const handleEdit = (product) => {
     setCurrentProduct(product);
     setCurrentEditState(editStates[product.id]);
     setEditModalVisible(true);
   };
-
 
   const handleModalSave = () => {
     if (!currentProduct) return;
@@ -89,28 +98,29 @@ const Products = () => {
     setEditModalVisible(false);
   };
 
+  const handleCancel = (id) =>
+    setEditStates((prev) => ({
+      ...prev,
+      [id]: { qty: null, pkd: null, exp: null, editing: false },
+    }));
 
-  const handleCancel = (id) => setEditStates((prev) => ({
-    ...prev,
-    [id]: { qty: null, pkd: null, exp: null, editing: false }
-  }));
-
-  const handleDelete = (id) => setEditStates((prev) => ({
-    ...prev,
-    [id]: { qty: null, pkd: null, exp: null, editing: false }
-  }));
+  const handleDelete = (id) =>
+    setEditStates((prev) => ({
+      ...prev,
+      [id]: { qty: null, pkd: null, exp: null, editing: false },
+    }));
 
   const handleQtyChange = (id, value) => {
     setEditStates((prev) => ({
       ...prev,
-      [id]: { ...prev[id], qty: value }
+      [id]: { ...prev[id], qty: value },
     }));
   };
 
   const handleDateChange = (id, type, _, dateString) => {
     setEditStates((prev) => ({
       ...prev,
-      [id]: { ...prev[id], [type]: dateString }
+      [id]: { ...prev[id], [type]: dateString },
     }));
   };
 
@@ -122,10 +132,31 @@ const Products = () => {
 
   return (
     <div>
-      <SearchBar searchTerm={searchTerm} handleSearch={handleSearch} loading={loading} />
-      {loading ? <Spin /> : products.length > 0 ? (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-          {products.map((product) => (
+      <SearchBar
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+      />
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+        {initialLoad || productsLoading ? ( // Show skeleton only on initial load or during product fetching
+          [...Array(searchTerm ? products.length : 8)].map((_, index) => ( // Adjust skeleton count
+            <div
+              key={index}
+              style={{
+                width: 240,
+                padding: 16,
+                border: "1px solid #f0f0f0",
+                borderRadius: 8,
+              }}
+            >
+              <Skeleton.Image
+                style={{ width: 150, height: 150, marginBottom: 12 }}
+              />
+              <Skeleton active title paragraph={{ rows: 2 }} />
+            </div>
+          ))
+        ) : products.length > 0 ? (
+          products.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -139,13 +170,13 @@ const Products = () => {
               handleDateChange={handleDateChange}
               openStickerModal={openStickerModal}
             />
-          ))}
-        </div>
-      ) : (
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <h2>No products found</h2>
-        </div>
-      )}
+          ))
+        ) : (
+          <div style={{ width: "100%", textAlign: "center", marginTop: 20 }}>
+            <h2>No products found</h2>
+          </div>
+        )}
+      </div>
       <StickerModal
         visible={modalVisible}
         product={selectedProduct}
@@ -164,7 +195,6 @@ const Products = () => {
         setEditState={setCurrentEditState}
         quantityOptions={quantity}
       />
-
     </div>
   );
 };

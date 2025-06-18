@@ -51,3 +51,7 @@ exports.register = async (req, res) => {
         res.status(500).json({ error: "Failed to register user" });
     }
 }
+
+exports.logout = (req, res) => {
+    res.status(200).json({ message: "Logout successful" });
+}
