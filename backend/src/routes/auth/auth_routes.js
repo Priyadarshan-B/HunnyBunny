@@ -7,6 +7,7 @@ const roles = require("../../controllers/auth/role");
 router.post('/resources', resources.get_resources);
 router.post('/login', user.post_login);
 router.post('/register', user.register);
+router.post('/logout', user.logout);
 router.get('/roles', roles.get_roles);
 
 module.exports = router;

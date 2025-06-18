@@ -41,9 +41,8 @@ function SideBar(props) {
     const location = useLocation();
     const sidebarRef = useRef(null);
 
-    // Decode JWT from localStorage
     useEffect(() => {
-        const token = localStorage.getItem("D!"); // Adjust the key if needed
+        const token = localStorage.getItem("D!");
         if (token) {
             try {
                 const decoded = jwtDecode(token);
@@ -55,7 +54,7 @@ function SideBar(props) {
     }, []);
 
     const fetchSidebarSections = async () => {
-        const cacheKey = "sidebar";
+        const cacheKey = "sb";
         const encryptedData = sessionStorage.getItem(cacheKey);
 
         if (encryptedData) {
