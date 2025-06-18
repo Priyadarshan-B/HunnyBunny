@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { BarChart, Bar, PieChart, Pie, Cell, Tooltip, ResponsiveContainer, XAxis, YAxis, Legend } from "recharts";
 import { message } from "antd";
 import './Dashboard.css';
-import requestApi from "../../components/utils/api";
+import requestApi from "../../components/utils/axios";
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#8dd1e1', '#a4de6c'];
 
@@ -12,24 +12,27 @@ function Dashboard() {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const fetchProducts = async (term = "") => {
-        try {
-            setLoading(true);
-            const res = await requestApi("GET", `/products/qr_products?term=${term}`);
-            setProducts(res.data);
-            console.log("Fetched products:", res.data);
-            const initialStates = {};
-            res.data.forEach((prod) => {
-                initialStates[prod.id] = { qty: null, pkd: null, exp: null, editing: false };
-            });
-            setEditStates(initialStates);
-        } catch {
-            message.error("Failed to fetch products");
-            setSearchTerm("");
-        } finally {
-            setLoading(false);
-        }
-    };
+   const fetchProducts = async () => {
+    try {
+        setLoading(true);
+        console.log("Calling API...");
+        const res = await requestApi("GET", `/products/qr_products`);
+        console.log("API Response:", res.data);
+        setProducts(res.data);
+
+        const initialStates = {};
+        res.data.forEach((prod) => {
+            initialStates[prod.id] = { qty: null, pkd: null, exp: null, editing: false };
+        });
+        setEditStates(initialStates);
+    } catch (error) {
+        console.error("Fetch error:", error);
+        message.error("Failed to fetch products");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     useEffect(() => {
         fetchProducts();
