@@ -3,6 +3,7 @@ import "./Layout.css";
 import requestApi from "../utils/axios";
 import { Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { encryptData, decryptData } from "../utils/encrypt";
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import HistoryIcon from '@mui/icons-material/History';
@@ -48,15 +49,33 @@ function SideBar(props) {
     }, []);
 
     const fetchSidebarSections = async () => {
-        try {
-            const role = userInfo?.role || 2;
-            const data = await requestApi("POST", "/auth/resources", { role });
-            // console.log("Sidebar sections data:", data.data);
-            setSidebarSections(data.data);
-        } catch (error) {
-            console.error("Error fetching sidebar sections:", error);
+    const cacheKey = "sidebar";
+    const encryptedData = sessionStorage.getItem(cacheKey);
+
+    if (encryptedData) {
+        const decrypted = decryptData(encryptedData);
+        if (decrypted) {
+            setSidebarSections(decrypted);
+            return;
         }
-    };
+    }
+
+    try {
+        const role = userInfo?.role || 2;
+        const response = await requestApi("POST", "/auth/resources", { role });
+
+        if (response?.data) {
+            const encrypted = encryptData(response.data);
+            sessionStorage.setItem(cacheKey, encrypted);
+            setSidebarSections(response.data);
+        } else {
+            console.warn("No data received for sidebar sections.");
+        }
+    } catch (error) {
+        console.error("Error fetching sidebar sections:", error);
+    }
+};
+
 
     useEffect(() => {
         if (userInfo?.role) {
