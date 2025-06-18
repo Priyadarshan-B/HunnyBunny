@@ -12,7 +12,7 @@
 .dashboard-cards {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 10px;
     justify-content: center;
     margin-bottom: 30px;
 }
@@ -37,7 +37,7 @@
 .dashboard-graphs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    gap: 10px;
     margin-bottom: 40px;
 }
 

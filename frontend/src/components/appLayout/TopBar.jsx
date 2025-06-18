@@ -11,11 +11,13 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
-import { Typography, Avatar, Box, styled } from '@mui/material';
+import { Typography, Avatar, Box, styled, Divider} from '@mui/material';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { jwtDecode } from "jwt-decode";
+import Badge from '@mui/material/Badge';
+
 import image from "../../assets/image.png";
 import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import logo from "../../assets/logo.png";
@@ -120,10 +122,18 @@ function TopBar(props) {
                 <div className="top-bar-menus" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <CustomizedSwitches />
 
-                    <NotificationsActiveOutlinedIcon
+                    {/* <NotificationsActiveOutlinedIcon
                         sx={{ color: "#616773", fontSize: "22px", cursor: "pointer" }}
                         onClick={handleNotificationClick}
-                    />
+                    /> */}
+
+                    <Badge badgeContent={props.lowStockProducts?.length} color="error">
+                        <NotificationsActiveOutlinedIcon
+                            sx={{ color: "#616773", fontSize: "22px", cursor: "pointer" }}
+                            onClick={() => setNotificationDialogOpen(true)}
+                        />
+                    </Badge>
+
 
                     {userData.role === 2 && (
                         <PersonAddAltRoundedIcon
@@ -133,7 +143,7 @@ function TopBar(props) {
                         />
                     )}
 
-                    <div style={{ backgroundColor: "#0a6259", padding: "5px 13px", borderRadius: "100%", cursor:"pointer", fontWeight:"bold", color:"white"}} onClick={handleClick}>
+                    <div style={{ backgroundColor: "#0a6259", padding: "5px 13px", borderRadius: "100%", cursor: "pointer", fontWeight: "bold", color: "white" }} onClick={handleClick}>
                         {firstLetter}
                     </div>
 
@@ -233,7 +243,7 @@ function TopBar(props) {
             </Dialog>
 
             {/* Notifications Dialog */}
-            <BootstrapDialog
+            <BootstrapDialog fullWidth
                 onClose={handleNotificationClose}
                 aria-labelledby="customized-dialog-title"
                 open={notificationDialogOpen}
@@ -242,10 +252,35 @@ function TopBar(props) {
                     Notifications
                 </DialogTitle>
                 <DialogContent dividers>
-                    <Typography gutterBottom>
-                        You currently have no new notifications.
-                    </Typography>
+                    {props.lowStockProducts?.length > 0 ? (
+                        props.lowStockProducts.map((prod, index) => (
+                            <React.Fragment key={index}>
+                                <Box
+                                    sx={{
+                                        backgroundColor: prod.product_quantity <= 5 ? '#ffe5e5' : '#fff8e1', // light red or yellow
+                                        borderRadius: 2,
+                                        padding: 1.5,
+                                        mb: 1,
+                                        boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                >
+                                    <Typography variant="body2" sx={{ color: "#333", fontWeight: 500 }}>
+                                        ⚠️ <b>{prod.name}</b> has only <b>{prod.product_quantity}</b> left.
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: "#666" }}>
+                                        Please restock as soon as possible.
+                                    </Typography>
+                                </Box>
+                                {index < props.lowStockProducts.length - 1 && <Divider />}
+                            </React.Fragment>
+                        ))
+                    ) : (
+                        <Typography gutterBottom>
+                            You currently have no new notifications.
+                        </Typography>
+                    )}
                 </DialogContent>
+
                 <DialogActions>
                     <Button autoFocus onClick={handleNotificationClose} color="primary">
                         Close
