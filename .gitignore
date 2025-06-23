@@ -2,3 +2,8 @@ node_modules/
 .vscode
 .env
 qr-codes/
+/dist
+/public
+/public/qr-codes
+public/qr-codes/*
+./public
