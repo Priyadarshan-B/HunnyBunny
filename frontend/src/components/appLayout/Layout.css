@@ -2,10 +2,8 @@
 
 .app-sidebar {
     width: 280px;
-    /* Start with width instead of max-width */
     height: 100%;
     transition: width 0.3s;
-    /* Changed from max-width to width */
     overflow: auto;
     background-color: var(--background-1);
     box-shadow: var(--shadow);
