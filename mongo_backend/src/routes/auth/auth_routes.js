@@ -9,5 +9,6 @@ router.post('/login', user.post_login);
 router.post('/register', user.register);
 router.post('/logout', user.logout);
 router.get('/roles', roles.get_roles);
+router.post('/roles', roles.create_role);
 
 module.exports = router;
