@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -7,6 +6,8 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
     status: { type: String, enum: ['0', '1'], default: '1' }
+}, {
+    timestamps: true  // Adds createdAt and updatedAt automatically
 });
 
 module.exports = mongoose.model('User', UserSchema);

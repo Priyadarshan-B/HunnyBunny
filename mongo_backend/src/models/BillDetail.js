@@ -1,4 +1,3 @@
-// models/BillDetail.js
 const mongoose = require('mongoose');
 
 const BillDetailSchema = new mongoose.Schema({
@@ -7,8 +6,9 @@ const BillDetailSchema = new mongoose.Schema({
     quantity: { type: Number, required: true },
     unit_price: { type: mongoose.Decimal128, default: 0.0 },
     total_price: { type: mongoose.Decimal128, default: 0.0 },
-    status: { type: String, enum: ['0', '1'], default: '1' },
-    createdAt: { type: Date, default: Date.now }
+    status: { type: String, enum: ['0', '1'], default: '1' }
+}, {
+    timestamps: true  // Automatically adds createdAt and updatedAt
 });
 
 module.exports = mongoose.model('BillDetail', BillDetailSchema);
