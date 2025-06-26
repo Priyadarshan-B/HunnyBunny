@@ -35,7 +35,12 @@ exports.tdy_sold = async (req, res) => {
             }
         ]);
 
-        res.status(200).json(result);
+         const mapped = result.map(r => ({
+            ...r,
+            total_price: parseFloat(r.total_price?.toString() || "0")
+        }));
+
+        res.status(200).json(mapped);
     } catch (error) {
         console.error("Error fetching today's sales:", error);
         res.status(500).json({ error: "Failed to fetch today's sales" });
