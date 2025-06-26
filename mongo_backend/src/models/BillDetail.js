@@ -1,4 +1,3 @@
-// models/BillDetail.js
 const mongoose = require('mongoose');
 
 const BillDetailSchema = new mongoose.Schema({
@@ -7,6 +6,11 @@ const BillDetailSchema = new mongoose.Schema({
     quantity: { type: Number, required: true },
     unit_price: { type: mongoose.Decimal128, default: 0.0 },
     total_price: { type: mongoose.Decimal128, default: 0.0 },
+    location: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Location",
+          default: null,
+        },
     status: { type: String, enum: ['0', '1'], default: '1' },
     createdAt: { type: Date, default: Date.now }
 });

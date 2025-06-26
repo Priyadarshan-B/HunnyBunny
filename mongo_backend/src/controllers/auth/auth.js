@@ -22,7 +22,7 @@ exports.post_login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, name: user.username, email: user.email, role: user.role?._id},
+            { id: user._id, name: user.username, email: user.email, role: user.role?._id, location:user.location},
             process.env.JWT_SECRET,
             { expiresIn: '10h' }
         );
@@ -35,8 +35,8 @@ exports.post_login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-    const { username, password, email, role } = req.body;
-    if (!username || !password || !email || !role) {
+    const { username, password, email, role, location } = req.body;
+    if (!username || !password || !email || !role || !location) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -48,6 +48,7 @@ exports.register = async (req, res) => {
             password: hashedPassword,
             email,
             role,
+            location,
             status: '1'
         });
 
