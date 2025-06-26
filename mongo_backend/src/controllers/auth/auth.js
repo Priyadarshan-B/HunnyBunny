@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../../models/User"); // Mongoose model
+const User = require("../../models/User");
 
 exports.post_login = async (req, res) => {
     const { username, password } = req.body;
@@ -22,7 +22,7 @@ exports.post_login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, name: user.username, email: user.email, role: user.role },
+            { id: user._id, name: user.username, email: user.email, role: user.role?._id},
             process.env.JWT_SECRET,
             { expiresIn: '10h' }
         );

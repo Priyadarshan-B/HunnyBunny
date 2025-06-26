@@ -83,7 +83,7 @@ exports.get_qr_products = async (req, res) => {
             id: p._id,
             code: p.product_code,
             name: p.product_name,
-            price: p.product_price,
+            price: parseFloat(p.product_price?.toString()),
             product_quantity: p.product_quantity,
             qr_code: p.qr_code
         }));
