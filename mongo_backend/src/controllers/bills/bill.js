@@ -4,13 +4,14 @@ const { update_stock } = require("../../controllers/products/stocks");
 
 exports.post_bill = async (req, res) => {
   try {
-    const { customer_name, total_amount, payment_method, items } = req.body;
+    const { customer_name, total_amount, payment_method, items, location } = req.body;
 
     if (
       !customer_name ||
       !total_amount ||
       !payment_method ||
       !items ||
+      !location ||
       items.length === 0
     ) {
       return res.status(400).json({ error: "All fields are required" });
@@ -21,6 +22,7 @@ exports.post_bill = async (req, res) => {
       customer_name,
       total_amount,
       payment_method,
+      location,
       status: '1'
     });
 
@@ -33,6 +35,7 @@ exports.post_bill = async (req, res) => {
       quantity: item.quantity,
       unit_price: item.unit_price,
       total_price: item.unit_price * item.quantity,
+      location:location,
       status: '1',
       createdAt: new Date()
     }));
@@ -81,6 +84,7 @@ exports.get_bills = async (req, res) => {
         total_amount: parseFloat(bill.total_amount.toString()),
         payment_method: bill.payment_method,
         date: bill.createdAt,
+        location:bill.location,
         items: []
       };
     });
@@ -90,6 +94,7 @@ exports.get_bills = async (req, res) => {
         billMap[detail.bill_id].items.push({
           product_name: detail.product_name,
           quantity: detail.quantity,
+          location:detail.location,
           unit_price: parseFloat(detail.unit_price.toString())
         });
       }

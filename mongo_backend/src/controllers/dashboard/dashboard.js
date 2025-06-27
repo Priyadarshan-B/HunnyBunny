@@ -1,7 +1,8 @@
 const BillDetail = require("../../models/BillDetail");
 
 exports.tdy_sold = async (req, res) => {
-    const date = req.query.date;
+    const { date, location } = req.query;
+
     if (!date) {
         return res.status(400).json({ error: "Date is required" });
     }
@@ -11,12 +12,16 @@ exports.tdy_sold = async (req, res) => {
         const end = new Date(date);
         end.setDate(end.getDate() + 1);
 
+        // Build dynamic match stage
+        const matchStage = {
+            createdAt: { $gte: start, $lt: end },
+            status: '1',
+            ...(location && location !== 'All' && { location: location }),
+        };
+
         const result = await BillDetail.aggregate([
             {
-                $match: {
-                    createdAt: { $gte: start, $lt: end },
-                    status: '1'
-                }
+                $match: matchStage
             },
             {
                 $group: {
@@ -35,7 +40,7 @@ exports.tdy_sold = async (req, res) => {
             }
         ]);
 
-         const mapped = result.map(r => ({
+        const mapped = result.map(r => ({
             ...r,
             total_price: parseFloat(r.total_price?.toString() || "0")
         }));
