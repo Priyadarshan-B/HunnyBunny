@@ -151,7 +151,7 @@ function SideBar(props) {
                         <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "var(--text)" }}>
                             <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
                             <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>
-                            <p><b>Location :</b> Chennai</p> {/* Customize if token includes location */}
+                            <p><b>Location :</b> {userInfo?.location || "N/A"}</p> {/* Customize if token includes location */}
                         </div>
                     </div>
                 )}

@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import requestApi from '../../components/utils/axios';
 
 function History() {
@@ -28,6 +28,20 @@ function BillHistoryTable() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const billsPerPage = 5;
+    const [location, setLocation] = useState('');
+
+    // Get location from token
+    useEffect(() => {
+        const token = localStorage.getItem("D!");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setLocation(decoded?.location || '');
+            } catch (err) {
+                console.error("Invalid token for decoding:", err);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -38,32 +52,29 @@ function BillHistoryTable() {
     }, [search]);
 
     useEffect(() => {
+        if (!location) return; // Don't fetch if location is not ready
+
         const fetchBills = async () => {
             try {
-                const url = debouncedSearch
-                    ? `/bills/bill-details?name=${debouncedSearch}`
-                    : `/bills/bill-details`;
-                const response = await requestApi("GET",url);
+                let url = `/bills/bill-details?location=${encodeURIComponent(location)}`;
+                if (debouncedSearch) {
+                    url += `&name=${encodeURIComponent(debouncedSearch)}`;
+                }
+
+                const response = await requestApi("GET", url);
                 setBills(response.data);
             } catch (error) {
                 console.error('Error fetching bills:', error);
             }
         };
+
         fetchBills();
-    }, [debouncedSearch]);
+    }, [debouncedSearch, location]);
 
     const indexOfLast = currentPage * billsPerPage;
     const indexOfFirst = indexOfLast - billsPerPage;
     const currentBills = bills.slice(indexOfFirst, indexOfLast);
     const totalPages = Math.ceil(bills.length / billsPerPage);
-
-    const handlePrev = () => {
-        if (currentPage > 1) setCurrentPage(currentPage - 1);
-    };
-
-    const handleNext = () => {
-        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-    };
 
     return (
         <Box sx={{ paddingX: 2 }}>
@@ -83,6 +94,7 @@ function BillHistoryTable() {
                     marginBottom: '20px',
                     boxSizing: 'border-box',
                     backgroundColor: 'var(--background-1)',
+                    color: 'var(--text)'
                 }}
             />
 
@@ -107,14 +119,14 @@ function BillHistoryTable() {
             </TableContainer>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', backgroundColor: 'var(--background-1)', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
-                <Typography variant="body1">
+                <Typography variant="body1" sx={{ color: "var(--text)" }}>
                     Page {currentPage} of {totalPages}
                 </Typography>
                 <div>
-                    <Button onClick={handlePrev} disabled={currentPage === 1}>
+                    <Button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
                         Previous
                     </Button>
-                    <Button onClick={handleNext} disabled={currentPage === totalPages}>
+                    <Button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>
                         Next
                     </Button>
                 </div>
@@ -158,7 +170,7 @@ function Row({ bill }) {
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ padding: '10px', border: '1px solid var(--border-color)', margin: "10px 100px", borderRadius: '4px', padding: "10px 10px 0px 10px" }}>
+                        <Box sx={{ padding: '10px', border: '1px solid var(--border-color)', margin: "10px 100px", borderRadius: '4px' }}>
                             <Table size="small" aria-label="items">
                                 <TableHead sx={{ backgroundColor: "var(--table-header)" }}>
                                     <TableRow>
@@ -171,7 +183,7 @@ function Row({ bill }) {
                                 <TableBody>
                                     {(bill.items || []).map((item, idx) => (
                                         <TableRow key={idx}>
-                                            <TableCell sx={{ color: "var(--text)", padding: "10px" }}>{item.product_name}</TableCell>
+                                            <TableCell sx={{ color: "var(--text)" }}>{item.product_name}</TableCell>
                                             <TableCell align="right" sx={{ color: "var(--text)" }}>{item.quantity}</TableCell>
                                             <TableCell align="right" sx={{ color: "var(--text)" }}>₹{item.unit_price}</TableCell>
                                             <TableCell align="right" sx={{ color: "var(--text)" }}>₹{(item.unit_price * item.quantity).toFixed(2)}</TableCell>
@@ -180,9 +192,8 @@ function Row({ bill }) {
                                 </TableBody>
                             </Table>
                             <div style={{ fontSize: "18px", display: "flex", justifyContent: "flex-end", padding: "10px", color: "var(--text)" }}>
-                                <b>Total amount:</b>  ₹{total.toFixed(2)}
+                                <b>Total amount:</b> ₹{total.toFixed(2)}
                             </div>
-
                         </Box>
                     </Collapse>
                 </TableCell>

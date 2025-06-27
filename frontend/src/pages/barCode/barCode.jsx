@@ -7,13 +7,13 @@ const { Content } = Layout;
 
 function ProductSanner() {
   const [scannedData, setScannedData] = useState([]);
-  const [editingData, setEditingData] = useState([]); 
+  const [editingData, setEditingData] = useState([]);
   const [isFinished, setIsFinished] = useState(false);
 
   const handleScan = (data) => {
     if (data) {
       try {
-        const parsedData = JSON.parse(data); 
+        const parsedData = JSON.parse(data);
 
         const newProduct = {
           id: parsedData.id,

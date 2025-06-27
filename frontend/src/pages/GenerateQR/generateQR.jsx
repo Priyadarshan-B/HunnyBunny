@@ -1,16 +1,30 @@
-import React, { useState, useRef } from "react";
-import { Input, InputNumber, Button, Form, message } from "antd";
+import React, { useState, useRef, useEffect } from "react";
+import { Input, InputNumber, Button, Form } from "antd";
 import { QRCodeCanvas } from "qrcode.react";
 import requestApi from "../../components/utils/axios";
 import "./generateQR.css";
 import { showSuccess, showError, showWarning } from "../../components/toast/toast";
+import { jwtDecode } from "jwt-decode";
 
 export default function QRForm() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [qrId, setQrId] = useState(null);
   const [isQRGenerated, setIsQRGenerated] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
   const qrRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("D!");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserLocation(decoded?.location);
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+      }
+    }
+  }, []);
 
   const handleGenerateQR = async () => {
     try {
@@ -43,6 +57,7 @@ export default function QRForm() {
       formData.append("quantity", values.quantity);
       formData.append("qr_image", blob, `${values.product_id}.png`);
       formData.append("product_id", values.product_id);
+      formData.append("location", userLocation); // ✅ Auto-sending user location
 
       await requestApi("POST", "/products/qr_products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -70,6 +85,7 @@ export default function QRForm() {
         name: values.name,
         price: values.price,
         quantity: values.quantity,
+        location: userLocation, // ✅ Auto-sending user location
       };
 
       await requestApi("POST", "/products/qr_products", payload);
@@ -90,7 +106,6 @@ export default function QRForm() {
     <div className="mx-auto p-6 rounded bg-white [background-color:var(--background)]">
       <h2 className="text-2xl font-semibold mb-6">Add Bakery Product</h2>
       <div className="flex flex-col md:flex-row gap-6">
-
         {/* Left Box - Form and Generate QR */}
         <div className="flex-1 border border-[var(--border-color)] rounded p-6 shadow-md [background-color:var(--background-1)]">
           <Form form={form} layout="vertical">
@@ -99,7 +114,11 @@ export default function QRForm() {
               label={<span className="custom-label">Product ID</span>}
               rules={[{ required: true }]}
             >
-              <Input className="border border-[var(--border-color)]" style={{ backgroundColor: "var(--document)", color: "var(--text)" }} placeholder="Enter unique Product ID" />
+              <Input
+                className="border border-[var(--border-color)]"
+                style={{ backgroundColor: "var(--document)", color: "var(--text)" }}
+                placeholder="Enter unique Product ID"
+              />
             </Form.Item>
 
             <Form.Item
@@ -107,7 +126,11 @@ export default function QRForm() {
               label={<span className="custom-label">Product Name</span>}
               rules={[{ required: true }]}
             >
-              <Input className="border border-[var(--border-color)]" style={{ backgroundColor: "var(--document)", color: "var(--text)" }} placeholder="e.g. Cinnamon Roll" />
+              <Input
+                className="border border-[var(--border-color)]"
+                style={{ backgroundColor: "var(--document)", color: "var(--text)" }}
+                placeholder="e.g. Cinnamon Roll"
+              />
             </Form.Item>
 
             <Form.Item
@@ -115,7 +138,13 @@ export default function QRForm() {
               label={<span className="custom-label">Price</span>}
               rules={[{ required: true }]}
             >
-              <InputNumber style={{ backgroundColor: "var(--document)" }} min={0} step={0.01} className="w-full border border-[var(--border-color)] text-[var(--text)]" prefix="₹" />
+              <InputNumber
+                style={{ backgroundColor: "var(--document)" }}
+                min={0}
+                step={0.01}
+                className="w-full border border-[var(--border-color)] text-[var(--text)]"
+                prefix="₹"
+              />
             </Form.Item>
 
             <Form.Item
@@ -123,7 +152,11 @@ export default function QRForm() {
               label={<span className="custom-label">Quantity</span>}
               rules={[{ required: true }]}
             >
-              <InputNumber style={{ backgroundColor: "var(--document)" }} min={1} className="w-full border border-[var(--border-color)] text-[var(--text)]" />
+              <InputNumber
+                style={{ backgroundColor: "var(--document)" }}
+                min={1}
+                className="w-full border border-[var(--border-color)] text-[var(--text)]"
+              />
             </Form.Item>
 
             <div className="flex gap-2 mt-2 float-right">
@@ -151,7 +184,11 @@ export default function QRForm() {
         <div className="flex-1 border border-[var(--border-color)] rounded p-6 shadow-md [background-color:var(--background-1)] flex flex-col items-center justify-center">
           {qrId ? (
             <div ref={qrRef} className="text-center">
-              <QRCodeCanvas style={{ padding: "10px", backgroundColor: "white" }} value={qrId} size={160} />
+              <QRCodeCanvas
+                style={{ padding: "10px", backgroundColor: "white" }}
+                value={qrId}
+                size={160}
+              />
               <p className="mt-2 text-sm text-gray-500">
                 <strong>{qrId}</strong>
               </p>
@@ -171,7 +208,6 @@ export default function QRForm() {
             <p className="text-gray-400 text-center">Generate QR to preview here</p>
           )}
         </div>
-
       </div>
     </div>
   );

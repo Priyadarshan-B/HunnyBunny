@@ -9,6 +9,8 @@ import apiHost from "../../components/utils/api";
 import "./QRScanner.css";
 import { showSuccess, showError } from "../../components/toast/toast";
 import requestApi from "../../components/utils/axios";
+import { jwtDecode } from "jwt-decode";
+
 
 const QRScanner = () => {
     const webcamRef = useRef(null);
@@ -21,6 +23,20 @@ const QRScanner = () => {
     const [pdfUrl, setPdfUrl] = useState("");
     const [customerName, setCustomerName] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("UPI");
+    const [userLocation, setUserLocation] = useState("");
+
+
+    useEffect(() => {
+        const token = localStorage.getItem("D!");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserLocation(decoded?.location || "");
+            } catch (err) {
+                console.error("Error decoding token:", err);
+            }
+        }
+    }, []);
 
     const capture = useCallback(() => {
         const imageSrc = webcamRef.current?.getScreenshot();
@@ -54,9 +70,11 @@ const QRScanner = () => {
         return () => clearInterval(interval);
     }, [capture]);
 
+
+
     const fetchProduct = async (code) => {
         try {
-            const res = await axios.get(`${apiHost}/products/qr_products?term=${code}`);
+            const res = await axios.get(`${apiHost}/products/qr_products?term=${code}&location=${encodeURIComponent(userLocation)}`);
             const prod = res.data?.[0];
             if (!prod) throw new Error("Product not found");
 
@@ -72,6 +90,7 @@ const QRScanner = () => {
             alert("Product not found or error.");
         }
     };
+
 
     const recalculateTotal = (updated) => {
         const total = updated.reduce((sum, p) => sum + p.price * p.quantity, 0);
@@ -119,6 +138,7 @@ const QRScanner = () => {
             customer_name: customerName,
             total_amount: totalAmount,
             payment_method: paymentMethod,
+            location: userLocation, // 🔹 Include location
             items: products.map(p => ({
                 product_name: p.name,
                 quantity: p.quantity,
@@ -127,7 +147,7 @@ const QRScanner = () => {
         };
 
         try {
-            await requestApi("POST",`/bills/bill-details`, payload);
+            await requestApi("POST", `/bills/bill-details`, payload);
             showSuccess("Bill saved successfully!");
             handlePreviewBill();
             handleClearAll();
@@ -136,6 +156,7 @@ const QRScanner = () => {
         }
     };
 
+  
     const handlePreviewBill = () => {
         const doc = generatePDF(products, totalAmount);
         const dataUri = doc.output("datauristring");

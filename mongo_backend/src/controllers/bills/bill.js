@@ -35,7 +35,7 @@ exports.post_bill = async (req, res) => {
       quantity: item.quantity,
       unit_price: item.unit_price,
       total_price: item.unit_price * item.quantity,
-      location:location,
+      location: location,
       status: '1',
       createdAt: new Date()
     }));
@@ -57,12 +57,13 @@ exports.post_bill = async (req, res) => {
 
 exports.get_bills = async (req, res) => {
   try {
-    const { name, bill_id } = req.query;
+    const { name, bill_id, location } = req.query;
 
     const query = {
       status: '1',
       ...(name ? { customer_name: { $regex: name, $options: 'i' } } : {}),
-      ...(bill_id ? { _id: { $regex: bill_id, $options: 'i' } } : {})
+      ...(bill_id ? { _id: { $regex: bill_id, $options: 'i' } } : {}),
+      ...(location ? { location } : {})
     };
 
     const bills = await Bill.find(query).lean();
@@ -84,7 +85,7 @@ exports.get_bills = async (req, res) => {
         total_amount: parseFloat(bill.total_amount.toString()),
         payment_method: bill.payment_method,
         date: bill.createdAt,
-        location:bill.location,
+        location: bill.location,
         items: []
       };
     });
@@ -94,7 +95,7 @@ exports.get_bills = async (req, res) => {
         billMap[detail.bill_id].items.push({
           product_name: detail.product_name,
           quantity: detail.quantity,
-          location:detail.location,
+          location: detail.location,
           unit_price: parseFloat(detail.unit_price.toString())
         });
       }

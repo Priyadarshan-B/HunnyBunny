@@ -8,7 +8,7 @@ import DashboardCharts from "./DashboardCharts";
 import ProductDrawerChart from "./ProductDrawerChart";
 import ProductTable from "./ProductTable";
 import TodayProductSales from "./TodayProductSales";
-
+import { jwtDecode } from "jwt-decode"; // 🔹 Added this
 
 const ITEMS_PER_PAGE = 15;
 
@@ -17,15 +17,31 @@ function Dashboard(props) {
     const [loading, setLoading] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
+    const [userLocation, setUserLocation] = useState(""); // 🔹 Added
 
     useEffect(() => {
-        fetchProducts();
+        // 🔹 Decode location from JWT token
+        const token = localStorage.getItem("D!");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserLocation(decoded?.location || "");
+            } catch (err) {
+                console.error("Error decoding token:", err);
+            }
+        }
     }, []);
 
-    const fetchProducts = async () => {
+    useEffect(() => {
+        if (userLocation) {
+            fetchProducts(userLocation);
+        }
+    }, [userLocation]);
+
+    const fetchProducts = async (location) => {
         try {
             setLoading(true);
-            const res = await requestApi("GET", `/products/qr_products`);
+            const res = await requestApi("GET", `/products/qr_products?location=${encodeURIComponent(location)}`);
             setProducts(res.data);
             if (props.setLowStockProducts) {
                 const lowStocks = res.data.filter(p => Number(p.product_quantity) < 10);
@@ -61,19 +77,10 @@ function Dashboard(props) {
                 totalValue={totalValue}
             />
 
-            {/* <div style={{ textAlign: "right", marginBottom: "10px" }}>
-                <Button type="primary" onClick={() => setDrawerOpen(true)}>
-                    View Full Stock Graph
-                </Button>
-            </div> */}
-
             <DashboardCharts
                 topProducts={topProducts}
                 setDrawerOpen={setDrawerOpen}
             />
-
-
-
 
             <ProductDrawerChart
                 drawerOpen={drawerOpen}
@@ -85,14 +92,10 @@ function Dashboard(props) {
                 totalProducts={products.length}
             />
 
-            <div style={{
-                display: "flex",
-                gap: "10px"
-            }}>
+            <div style={{ display: "flex", gap: "10px" }}>
                 <ProductTable products={products} />
                 <TodayProductSales />
             </div>
-
         </div>
     );
 }

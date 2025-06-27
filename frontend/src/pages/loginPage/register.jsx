@@ -14,29 +14,39 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [roles, setRoles] = useState([]);
+    const [locations, setLocations] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchRoles = async () => {
-            const response = await requestApi("GET", "/auth/roles");
-            if (response.success) {
-                setRoles(response.data);
+        const fetchData = async () => {
+            const rolesRes = await requestApi("GET", "/auth/roles");
+            const locationsRes = await requestApi("GET", "/auth/location");
+
+            if (rolesRes.success) {
+                setRoles(rolesRes.data);
             } else {
                 message.error("Failed to load roles");
             }
+
+            if (locationsRes.success) {
+                setLocations(locationsRes.data);
+            } else {
+                message.error("Failed to load locations");
+            }
         };
-        fetchRoles();
+        fetchData();
     }, []);
 
     const onFinish = async (values) => {
         setLoading(true);
-        const { username, email, password, role } = values;
+        const { username, email, password, role, location } = values;
 
         const response = await requestApi("POST", "/auth/register", {
             username,
             email,
             password,
             role,
+            location,
         });
 
         if (response.success) {
@@ -90,6 +100,19 @@ function Register() {
                                 {roles.map((role) => (
                                     <Option key={role._id} value={role._id}>
                                         {role.role}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                            name="location"
+                            rules={[{ required: true, message: "Please select your location!" }]}
+                        >
+                            <Select placeholder="Select Location">
+                                {locations.map((loc) => (
+                                    <Option key={loc._id} value={loc._id}>
+                                        {loc.location}
                                     </Option>
                                 ))}
                             </Select>

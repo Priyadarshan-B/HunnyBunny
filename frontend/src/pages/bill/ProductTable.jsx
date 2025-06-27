@@ -1,7 +1,9 @@
+
 // src/components/QRScanner/ProductTable.jsx
 import React, { useEffect, useState } from 'react';
 import { Select, Spin } from 'antd';
 import requestApi from '../../components/utils/axios';
+import { jwtDecode } from 'jwt-decode';
 
 const { Option } = Select;
 
@@ -15,11 +17,31 @@ const ProductTable = ({
 }) => {
     const [productList, setProductList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [location, setLocation] = useState("");
+
+    // Decode token to get location
+    useEffect(() => {
+        const token = localStorage.getItem("D!");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setLocation(decoded?.location || "");
+            } catch (err) {
+                console.error("Invalid token:", err);
+            }
+        }
+    }, []);
 
     const fetchProducts = async (term = "") => {
         try {
             setLoading(true);
-            const res = await requestApi("GET", `/products/qr_products?term=${term}`);
+
+            let url = `/products/qr_products?location=${encodeURIComponent(location)}`;
+            if (term) {
+                url += `&term=${encodeURIComponent(term)}`;
+            }
+
+            const res = await requestApi("GET", url);
             const list = Array.isArray(res) ? res : res.data || [];
             setProductList(list);
         } catch (err) {
@@ -30,8 +52,10 @@ const ProductTable = ({
     };
 
     useEffect(() => {
-        fetchProducts();
-    }, []);
+        if (location) {
+            fetchProducts();
+        }
+    }, [location]);
 
     const handleSearch = (value) => {
         fetchProducts(value);

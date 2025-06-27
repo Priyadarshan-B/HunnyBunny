@@ -7,12 +7,13 @@ import SearchBar from "./SearchBar";
 import ProductCard from "./ProductCard";
 import EditProductModal from "./EditProductModal";
 import "./products.css";
+import { jwtDecode } from "jwt-decode";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [quantity, setQuantity] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true); // Specific loading state for products
-  const [initialLoad, setInitialLoad] = useState(true); // To prevent skeleton on initial search
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [editStates, setEditStates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -21,13 +22,27 @@ const Products = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [currentEditState, setCurrentEditState] = useState({});
+  const [userLocation, setUserLocation] = useState("");
+
+  // Extract location from JWT token
+  useEffect(() => {
+    const token = localStorage.getItem("D!");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserLocation(decoded?.location || "");
+      } catch (err) {
+        console.error("Failed to decode token:", err);
+      }
+    }
+  }, []);
 
   const fetchProducts = async (term = "") => {
     try {
+      if (!userLocation) return;
       setProductsLoading(true);
-      const res = await requestApi("GET", `/products/qr_products?term=${term}`);
+      const res = await requestApi("GET", `/products/qr_products?term=${term}&location=${encodeURIComponent(userLocation)}`);
       setProducts(res.data);
-      console.log("Fetched products:", res.data);
       const initialStates = {};
       res.data.forEach((prod) => {
         initialStates[prod.id] = {
@@ -40,10 +55,9 @@ const Products = () => {
       setEditStates(initialStates);
     } catch {
       message.error("Failed to fetch products");
-      // setSearchTerm(""); 
     } finally {
       setProductsLoading(false);
-      setInitialLoad(false); 
+      setInitialLoad(false);
     }
   };
 
@@ -61,22 +75,24 @@ const Products = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchQuantity();
-  }, []);
+    if (userLocation) {
+      fetchProducts();
+      fetchQuantity();
+    }
+  }, [userLocation]);
 
   const debouncedSearch = useMemo(
     () =>
       debounce((value) => {
         fetchProducts(value);
       }, 400),
-    []
+    [userLocation]
   );
 
   const handleSearch = useCallback(
     (e) => {
       const value = e.target.value;
-      setSearchTerm(value); 
+      setSearchTerm(value);
       debouncedSearch(value);
     },
     [debouncedSearch]
@@ -132,14 +148,15 @@ const Products = () => {
 
   return (
     <div>
-      <SearchBar
-        searchTerm={searchTerm}
-        handleSearch={handleSearch}
-      />
+      <div style={{ marginBottom: '10px', color: 'var(--text)', fontWeight: 'bold' }}>
+        Location: {userLocation}
+      </div>
+
+      <SearchBar searchTerm={searchTerm} handleSearch={handleSearch} />
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-        {initialLoad || productsLoading ? ( // Show skeleton only on initial load or during product fetching
-          [...Array(searchTerm ? products.length : 8)].map((_, index) => ( // Adjust skeleton count
+        {initialLoad || productsLoading ? (
+          [...Array(searchTerm ? products.length : 8)].map((_, index) => (
             <div
               key={index}
               style={{
@@ -177,6 +194,7 @@ const Products = () => {
           </div>
         )}
       </div>
+
       <StickerModal
         visible={modalVisible}
         product={selectedProduct}
