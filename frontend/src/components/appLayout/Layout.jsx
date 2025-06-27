@@ -16,7 +16,7 @@ function AppLayout(props) {
             <TopBar sidebar={handleSideBar} lowStockProducts={lowStockProducts} />
             <div style={{ height: '100%', display: 'flex' }}>
                 <SideBar open={sidebarState} resource={props.rId} handleSideBar={handleSideBar} />
-                <div className="app-body" style={{ width: '100%' }}>
+                <div className="app-body"id="app-body" style={{ width: '100%' }}>
                     {/* Clone props.body and pass the setter */}
                     {React.cloneElement(props.body, { setLowStockProducts })}
                 </div>

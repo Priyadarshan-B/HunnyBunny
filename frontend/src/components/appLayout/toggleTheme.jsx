@@ -6,10 +6,11 @@ import Switch from "@mui/material/Switch";
 import IconButton from '@mui/material/IconButton';
 import NightsStayIcon from '@mui/icons-material/NightsStay';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
-// Define the theme
+import { ConfigProvider, theme as antdTheme } from "antd";
+
 const theme = createTheme({
     palette: {
-        mode: "dark", // Initially set to light mode
+        mode: "dark", 
     },
 });
 
@@ -67,7 +68,6 @@ const darkModeProperties = {
 
 };
 
-// Set custom properties based on theme mode
 const setCustomProperties = (mode) => {
     const root = document.documentElement;
     root.style.cssText = Object.entries(
@@ -77,37 +77,49 @@ const setCustomProperties = (mode) => {
         .join("");
 };
 
-// Styled switch
 
 export default function CustomizedSwitches() {
     const [darkMode, setDarkMode] = useState(false);
+      const currentTheme = darkMode ? "dark" : "light";
 
     useEffect(() => {
-        // Check if the user has a preference for theme stored in local storage
         const preferredTheme = localStorage.getItem("preferredTheme");
         if (preferredTheme) {
             setDarkMode(preferredTheme === "dark");
             setCustomProperties(preferredTheme);
         }
-        // If not, set initial mode to light and update custom properties
         else {
             setCustomProperties("light");
         }
-    }, []); // Run only on initial render
+    }, []); 
 
     const toggleDarkMode = () => {
         const newMode = !darkMode;
         setDarkMode(newMode);
         const mode = newMode ? "dark" : "light";
-        setCustomProperties(mode); // Update custom properties based on theme mode
-        localStorage.setItem("preferredTheme", mode); // Store user preference for theme
+        setCustomProperties(mode); 
+        localStorage.setItem("preferredTheme", mode); 
     };
 
     return (
+        <ConfigProvider
+      theme={{
+        algorithm:
+          currentTheme === "dark"
+            ? antdTheme.darkAlgorithm
+            : antdTheme.defaultAlgorithm,
+        token: {
+          colorPrimary: "#178a84",
+          colorBgContainer: currentTheme === "dark" ? "#191c24" : "#ffffff",
+          colorText: currentTheme === "dark" ? "#e6e6e6" : "#191c24",
+        },
+      }}>
         <ThemeProvider theme={theme}>
             <IconButton sx={{ ml: 1 }} onClick={toggleDarkMode} color="inherit">
                 {darkMode ? <WbSunnyIcon sx={{ color: "#616773", fontSize: "22px" }} /> : <NightsStayIcon sx={{ color: "#616773", fontSize: "22px" }} />}
             </IconButton>
         </ThemeProvider>
+    </ConfigProvider>
+
     );
 }

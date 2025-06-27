@@ -1,6 +1,6 @@
 const Bill = require("../../models/Bill");
 const BillDetail = require("../../models/BillDetail");
-const { update_stock } = require("../../controllers/products/stocks");
+// const { update_stock } = require("../../controllers/products/stocks");
 
 exports.post_bill = async (req, res) => {
   try {
@@ -43,10 +43,10 @@ exports.post_bill = async (req, res) => {
     await BillDetail.insertMany(detailDocs);
 
     // Update stock
-    for (const item of items) {
-      const result = await update_stock(item.product_name, item.quantity);
-      console.log(`Stock updated for ${item.product_name}:`, result);
-    }
+    // for (const item of items) {
+    //   const result = await update_stock(item.product_name, item.quantity);
+    //   console.log(`Stock updated for ${item.product_name}:`, result);
+    // }
 
     return res.status(200).json({ message: "Bill and items saved successfully" });
   } catch (error) {

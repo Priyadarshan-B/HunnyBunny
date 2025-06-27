@@ -70,7 +70,7 @@ exports.post_qr_products = async (req, res) => {
 
 exports.get_qr_products = async (req, res) => {
   try {
-    const { term, location } = req.query;
+    const { term, page, limit } = req.query;
 
     const filter = {
       status: "1",
@@ -80,12 +80,24 @@ exports.get_qr_products = async (req, res) => {
           { product_code: { $regex: term, $options: "i" } },
         ],
       }),
-      ...(location && location !== "All" && { location }),
     };
 
-    const products = await QRProduct.find(filter)
-      .populate("location", "location") 
+    let query = QRProduct.find(filter)
+      .populate("location", "location")
       .select("_id product_code product_name product_price product_quantity qr_code location");
+
+    const countPromise = QRProduct.countDocuments(filter);
+
+    let parsedPage, parsedLimit;
+
+    if (page && limit) {
+      parsedPage = parseInt(page, 10);
+      parsedLimit = Math.min(parseInt(limit, 10), 500);
+      const skip = (parsedPage - 1) * parsedLimit;
+      query = query.skip(skip).limit(parsedLimit);
+    }
+
+    const [products, totalCount] = await Promise.all([query, countPromise]);
 
     const mapped = products.map((p) => ({
       id: p._id,
@@ -98,12 +110,23 @@ exports.get_qr_products = async (req, res) => {
       location_name: p.location?.location || null,
     }));
 
-    res.status(200).json(mapped);
+    res.status(200).json({
+      data: mapped,
+      total: totalCount,
+      ...(page && limit
+        ? {
+            page: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: Math.ceil(totalCount / parsedLimit),
+          }
+        : {}),
+    });
   } catch (error) {
     console.error("DB Error:", error);
     res.status(500).json({ error: "Failed to fetch products" });
   }
 };
+
 
 exports.get_product_by_code = async (req, res) => {
   try {

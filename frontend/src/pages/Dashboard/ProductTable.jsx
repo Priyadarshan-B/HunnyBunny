@@ -21,7 +21,7 @@ function ProductTable({ products }) {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value.toLowerCase());
-        setPage(0); // reset to first page on search
+        setPage(0); 
     };
 
     const filteredProducts = products.filter(

@@ -9,7 +9,9 @@ exports.post_login = async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ username, status: '1' }).populate('role');
+        const user = await User.findOne({ username, status: '1' })
+            .populate('role')
+            .populate('location');
 
         if (!user) {
             return res.status(401).json({ error: "Invalid username or password" });
@@ -21,18 +23,32 @@ exports.post_login = async (req, res) => {
             return res.status(401).json({ error: "Invalid username or password" });
         }
 
+        const location = user.location?._id || null;
+        const locationName = user.location?.location || "";
+
         const token = jwt.sign(
-            { id: user._id, name: user.username, email: user.email, role: user.role?._id, location:user.location},
+            {
+                id: user._id,
+                name: user.username,
+                email: user.email,
+                role: user.role?._id,
+                location: location,
+                lname: locationName
+            },
             process.env.JWT_SECRET,
             { expiresIn: '10h' }
         );
 
-        res.status(200).json({ message: "Login successful", token });
+        res.status(200).json({
+            message: "Login successful",
+            token,
+        });
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).json({ error: "Failed to login" });
     }
 };
+
 
 exports.register = async (req, res) => {
     const { username, password, email, role, location } = req.body;

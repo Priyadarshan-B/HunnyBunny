@@ -1,4 +1,3 @@
-// src/components/QRScanner/CustomerForm.jsx
 import React from 'react';
 
 const CustomerForm = ({ customerName, setCustomerName, paymentMethod, setPaymentMethod }) => (

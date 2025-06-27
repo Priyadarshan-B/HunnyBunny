@@ -1,145 +1,328 @@
-
-// src/components/QRScanner/ProductTable.jsx
-import React, { useEffect, useState } from 'react';
-import { Select, Spin } from 'antd';
-import requestApi from '../../components/utils/axios';
-import { jwtDecode } from 'jwt-decode';
+import React, { useState, useEffect, useRef } from "react";
+import { Table, Input, Button, Space, Select, Spin } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import requestApi from "../../components/utils/axios";
+import { debounce } from "lodash";
+import CreatableSelect from 'react-select/creatable';
+import { jwtDecode } from "jwt-decode";
 
 const { Option } = Select;
 
 const ProductTable = ({
-    products,
-    handleChange,
-    totalAmount,
-    handleClearAll,
-    handleSaveBill,
-    handleProductSelect,
+  products,
+  handleChange,
+  totalAmount,
+  handleClearAll,
+  handleSaveBill,
+  handleProductSelect,
 }) => {
-    const [productList, setProductList] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [location, setLocation] = useState("");
+  const [dataSource, setDataSource] = useState([]);
+  const [productList, setProductList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [location, setLocation] = useState("");
+  const [inputMode, setInputMode] = useState({});
 
-    // Decode token to get location
-    useEffect(() => {
-        const token = localStorage.getItem("D!");
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                setLocation(decoded?.location || "");
-            } catch (err) {
-                console.error("Invalid token:", err);
-            }
-        }
-    }, []);
 
-    const fetchProducts = async (term = "") => {
-        try {
-            setLoading(true);
-
-            let url = `/products/qr_products?location=${encodeURIComponent(location)}`;
-            if (term) {
-                url += `&term=${encodeURIComponent(term)}`;
-            }
-
-            const res = await requestApi("GET", url);
-            const list = Array.isArray(res) ? res : res.data || [];
-            setProductList(list);
-        } catch (err) {
-            console.error("Error fetching products:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (location) {
-            fetchProducts();
-        }
-    }, [location]);
-
-    const handleSearch = (value) => {
-        fetchProducts(value);
-    };
-
-    return (
-        <div className="bill-container">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="qr-subtitle">Scanned Products</h3>
-                <Select
-                    showSearch
-                    allowClear
-                    placeholder="Search product..."
-                    style={{ width: 300 }}
-                    filterOption={false}
-                    onSearch={handleSearch}
-                    onSelect={(value) => {
-                        const selected = productList.find((p) => p.code === value);
-                        if (selected) {
-                            handleProductSelect(selected);
-                        }
-                    }}
-                    notFoundContent={loading ? <Spin size="small" /> : "No product"}
-                    dropdownStyle={{ maxHeight: 200, overflow: 'auto' }}
-                >
-                    {productList.slice(0, 5).map((product) => (
-                        <Option key={product.code} value={product.code}>
-                            {product.name} ({product.code}) - ₹{product.price}
-                        </Option>
-                    ))}
-                </Select>
-            </div>
-
-            <table className="qr-table">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {products.map((prod, idx) => (
-                        <tr key={idx}>
-                            <td>{prod.code}</td>
-                            <td>{prod.name}</td>
-                            <td>
-                                <input
-                                    className="input-box"
-                                    type="number"
-                                    min="1"
-                                    value={prod.quantity}
-                                    onChange={(e) => handleChange(idx, 'quantity', e.target.value)}
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    className="input-box"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={prod.price}
-                                    onChange={(e) => handleChange(idx, 'price', e.target.value)}
-                                />
-                            </td>
-                            <td>₹ {(prod.price * prod.quantity).toFixed(2)}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            <div className="qr-total">Total Amount: ₹{totalAmount.toFixed(2)}</div>
-            <div className="qr-actions">
-                <button className="qr-clear-btn" onClick={handleClearAll}>
-                    Clear All
-                </button>
-                <button className="qr-bill-btn" onClick={handleSaveBill}>
-                    Save & Generate Bill
-                </button>
-            </div>
-        </div>
+  useEffect(() => {
+    setDataSource(
+      products.length > 0
+        ? products
+        : [{ code: "", name: "", price: 0, quantity: 1 }]
     );
+  }, [products]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("D!");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setLocation(decoded?.location || "");
+      } catch (err) {
+        console.error("Invalid token:", err);
+      }
+    }
+  }, []);
+
+  const fetchProducts = async (term = "") => {
+    if (!term.trim()) {
+      setProductList([]);
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await requestApi(
+        "GET",
+        `/products/qr_products?term=${encodeURIComponent(term)}`
+      );
+      const list = res.data?.data || [];
+      setProductList(list);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setProductList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const debouncedFetch = useRef(
+    debounce((value) => {
+      fetchProducts(value);
+    }, 300)
+  ).current;
+
+  const handleSearch = (value) => {
+    debouncedFetch(value);
+  };
+
+  
+
+  const handleAddRow = () => {
+    setDataSource((prev) => [
+      ...prev,
+      { code: "", name: "", price: 0, quantity: 1 },
+    ]);
+  };
+
+  const handleDeleteRow = (index) => {
+    const newData = [...dataSource];
+    newData.splice(index, 1);
+    setDataSource(newData);
+    handleChange(index, "delete", null);
+  };
+
+  const customStyles = {
+  control: (base) => ({
+    ...base,
+    minHeight: '32px',
+    fontSize: '0.875rem', 
+    borderColor: '#d1d5db',
+    boxShadow: 'none',
+    '&:hover': { borderColor: '#9ca3af' },
+  }),
+  menu: (base) => ({
+    ...base,
+    fontSize: '0.875rem',
+    zIndex: 9999,
+  }),
+  input: (base) => ({
+    ...base,
+    padding: '2px 6px',
+  }),
+};
+
+
+  const onFieldChange = (index, field, value) => {
+    const updated = [...dataSource];
+    updated[index][field] = field === "price" || field === "quantity" ? Number(value) : value;
+    setDataSource(updated);
+    handleChange(index, field, value);
+
+    if (["code", "name"].includes(field)) {
+        const productFieldList = productList.map(p => p[field]);
+        setInputMode(prev => ({
+            ...prev,
+            [`${field}-${index}`]: !productFieldList.includes(value)
+        }));
+    }
+};
+
+
+  const handleProductSelectDropdown = (code) => {
+    const selected = productList.find((p) => p.code === code);
+    if (selected) {
+      handleProductSelect({
+        code: selected.code,
+        name: selected.name,
+        price: parseFloat(selected.price),
+        quantity: 1,
+      });
+    }
+  };
+
+  const columns = [
+  {
+    title: 'Code',
+    dataIndex: 'code',
+    render: (text, record, index) => (
+      <CreatableSelect
+        className="min-w-[140px]"
+        styles={customStyles}
+        placeholder="code"
+        value={text ? { label: text, value: text } : null}
+        onInputChange={debounce((inputValue) => {
+          if (inputValue) fetchProducts(inputValue);
+        }, 300)}
+        onChange={(option) => {
+          const value = option?.value || "";
+          const product = productList.find(p => p.code === value);
+
+          const updated = [...dataSource];
+          if (product) {
+            updated[index] = {
+              code: product.code,
+              name: product.name,
+              price: parseFloat(product.price),
+              quantity: 1,
+            };
+          } else {
+            updated[index].code = value;
+          }
+          setDataSource(updated);
+          handleChange(index, 'code', value);
+          if (product) {
+            handleChange(index, 'name', product.name);
+            handleChange(index, 'price', parseFloat(product.price));
+            handleChange(index, 'quantity', 1);
+          }
+        }}
+        isClearable
+        options={productList.map(p => ({
+          label: `${p.code} - ${p.name}`,
+          value: p.code,
+        }))}
+      />
+    ),
+  },
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    render: (text, record, index) => (
+      <CreatableSelect
+        className="min-w-[180px]"
+        styles={customStyles}
+        placeholder=" name"
+        value={text ? { label: text, value: text } : null}
+        onInputChange={debounce((inputValue) => {
+          if (inputValue) fetchProducts(inputValue);
+        }, 300)}
+        onChange={(option) => {
+          const value = option?.value || "";
+          const product = productList.find(p => p.name === value);
+
+          const updated = [...dataSource];
+          if (product) {
+            updated[index] = {
+              code: product.code,
+              name: product.name,
+              price: parseFloat(product.price),
+              quantity: 1,
+            };
+          } else {
+            updated[index].name = value;
+          }
+          setDataSource(updated);
+          handleChange(index, 'name', value);
+          if (product) {
+            handleChange(index, 'code', product.code);
+            handleChange(index, 'price', parseFloat(product.price));
+            handleChange(index, 'quantity', 1);
+          }
+        }}
+        isClearable
+        options={productList.map(p => ({
+          label: `${p.name} (${p.code})`,
+          value: p.name,
+        }))}
+      />
+    ),
+  },
+    {
+      title: "Qty",
+      dataIndex: "quantity",
+      render: (text, record, index) => (
+        <Input
+          type="number"
+          min={1}
+          value={text}
+          onChange={(e) => onFieldChange(index, "quantity", e.target.value)}
+          placeholder="Qty"
+        />
+      ),
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      render: (text, record, index) => (
+        <Input
+          type="number"
+          min={0}
+          step="0.01"
+          value={text}
+          onChange={(e) => onFieldChange(index, "price", e.target.value)}
+          placeholder="Price"
+        />
+      ),
+    },
+    {
+      title: "Subtotal",
+      key: "subtotal",
+      render: (_, record) => (
+        <>₹ {(record.price * record.quantity).toFixed(2)}</>
+      ),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, __, index) => (
+        <Button
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDeleteRow(index)}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div className="bill-container">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="qr-subtitle">Scanned Products</h3>
+
+        <Select
+          showSearch
+          allowClear
+          placeholder="Search product..."
+          style={{ width: 300 }}
+          filterOption={false}
+          onSearch={handleSearch}
+          onSelect={handleProductSelectDropdown}
+          notFoundContent={loading ? <Spin size="small" /> : "No product"}
+          dropdownStyle={{ maxHeight: 200, overflow: "auto" }}
+        >
+          {productList.slice(0, 5).map((product) => (
+            <Option key={product.code} value={product.code}>
+              {product.name} ({product.code}) - ₹{product.price}
+            </Option>
+          ))}
+        </Select>
+      </div>
+
+      <Table
+        columns={columns}
+        dataSource={dataSource}
+        pagination={false}
+        rowKey={(record, index) => record.code + index}
+        bordered
+      />
+
+      <div className="qr-actions" style={{ marginTop: "1rem" }}>
+        <Button icon={<PlusOutlined />} type="dashed" onClick={handleAddRow}>
+          Add Row
+        </Button>
+      </div>
+
+      <div className="qr-total">Total Amount: ₹{totalAmount.toFixed(2)}</div>
+
+      <div className="qr-actions">
+        <button className="qr-clear-btn" onClick={handleClearAll}>
+          Clear All
+        </button>
+        <button className="qr-bill-btn" onClick={handleSaveBill}>
+          Save & Generate Bill
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default ProductTable;

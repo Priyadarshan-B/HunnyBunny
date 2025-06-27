@@ -12,8 +12,10 @@ import { jwtDecode } from "jwt-decode";
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [quantity, setQuantity] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [editStates, setEditStates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -22,38 +24,52 @@ const Products = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [currentEditState, setCurrentEditState] = useState({});
-  const [userLocation, setUserLocation] = useState("");
+  const [displayLocation, setDisplayLocation] = useState("");
 
-  // Extract location from JWT token
+  const LIMIT = 10;
+
   useEffect(() => {
     const token = localStorage.getItem("D!");
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setUserLocation(decoded?.location || "");
+        setDisplayLocation(decoded?.lname || "");
       } catch (err) {
         console.error("Failed to decode token:", err);
       }
     }
   }, []);
 
-  const fetchProducts = async (term = "") => {
+  const fetchProducts = async (page = 1, term = "") => {
+    if (productsLoading) return;
+
     try {
-      if (!userLocation) return;
       setProductsLoading(true);
-      const res = await requestApi("GET", `/products/qr_products?term=${term}&location=${encodeURIComponent(userLocation)}`);
-      setProducts(res.data);
-      const initialStates = {};
-      res.data.forEach((prod) => {
-        initialStates[prod.id] = {
+      const res = await requestApi(
+        "GET",
+        `/products/qr_products?term=${encodeURIComponent(term)}&page=${page}&limit=${LIMIT}`
+      );
+
+      const newProducts = res.data?.data || [];
+
+      setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
+
+      const newEditStates = {};
+      newProducts.forEach((prod) => {
+        newEditStates[prod.id] = {
           qty: null,
           pkd: null,
           exp: null,
           editing: false,
         };
       });
-      setEditStates(initialStates);
-    } catch {
+      setEditStates((prev) => (page === 1 ? newEditStates : { ...prev, ...newEditStates }));
+
+      const total = res.data?.total || 0;
+      const loaded = page * LIMIT;
+      setHasMore(loaded < total);
+      setCurrentPage(page);
+    } catch (error) {
       message.error("Failed to fetch products");
     } finally {
       setProductsLoading(false);
@@ -74,19 +90,28 @@ const Products = () => {
     }
   };
 
+  // On first mount, fetch first page
   useEffect(() => {
-    if (userLocation) {
-      fetchProducts();
-      fetchQuantity();
-    }
-  }, [userLocation]);
+    setProducts([]);
+    setEditStates({});
+    setCurrentPage(1);
+    setHasMore(true);
+    setInitialLoad(true);
+    fetchProducts(1, searchTerm);
+    fetchQuantity();
+  }, []);
 
   const debouncedSearch = useMemo(
     () =>
       debounce((value) => {
-        fetchProducts(value);
+        setProducts([]);
+        setEditStates({});
+        setCurrentPage(1);
+        setHasMore(true);
+        setInitialLoad(true);
+        fetchProducts(1, value);
       }, 400),
-    [userLocation]
+    []
   );
 
   const handleSearch = useCallback(
@@ -146,17 +171,36 @@ const Products = () => {
     setStickerCount(1);
   };
 
+ useEffect(() => {
+  const scrollContainer = document.getElementById("app-body"); 
+
+  if (!scrollContainer) return;
+
+  const handleScroll = () => {
+    const nearBottom =
+      scrollContainer.scrollTop + scrollContainer.clientHeight + 300 >= scrollContainer.scrollHeight;
+
+    if (nearBottom && hasMore && !productsLoading) {
+      fetchProducts(currentPage + 1, searchTerm);
+    }
+  };
+
+  scrollContainer.addEventListener("scroll", handleScroll);
+  return () => scrollContainer.removeEventListener("scroll", handleScroll);
+}, [currentPage, hasMore, productsLoading, searchTerm]);
+
+
   return (
     <div>
-      <div style={{ marginBottom: '10px', color: 'var(--text)', fontWeight: 'bold' }}>
-        Location: {userLocation}
+      <div style={{ marginBottom: "10px", color: "var(--text)", fontWeight: "bold" }}>
+        Location: {displayLocation}
       </div>
 
       <SearchBar searchTerm={searchTerm} handleSearch={handleSearch} />
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-        {initialLoad || productsLoading ? (
-          [...Array(searchTerm ? products.length : 8)].map((_, index) => (
+        {initialLoad && products.length === 0 ? (
+          [...Array(8)].map((_, index) => (
             <div
               key={index}
               style={{
@@ -166,9 +210,7 @@ const Products = () => {
                 borderRadius: 8,
               }}
             >
-              <Skeleton.Image
-                style={{ width: 150, height: 150, marginBottom: 12 }}
-              />
+              <Skeleton.Image style={{ width: 150, height: 150, marginBottom: 12 }} />
               <Skeleton active title paragraph={{ rows: 2 }} />
             </div>
           ))
@@ -194,6 +236,10 @@ const Products = () => {
           </div>
         )}
       </div>
+
+      {productsLoading && (
+        <div style={{ textAlign: "center", padding: 20 }}>Loading...</div>
+      )}
 
       <StickerModal
         visible={modalVisible}

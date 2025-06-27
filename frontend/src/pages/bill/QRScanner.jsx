@@ -74,8 +74,9 @@ const QRScanner = () => {
 
     const fetchProduct = async (code) => {
         try {
-            const res = await axios.get(`${apiHost}/products/qr_products?term=${code}&location=${encodeURIComponent(userLocation)}`);
-            const prod = res.data?.[0];
+            const res = await axios.get(`${apiHost}/products/qr_products?term=${code}`);
+            const prod = res.data.data?.[0];
+            console.log(prod)
             if (!prod) throw new Error("Product not found");
 
             const price = parseFloat(prod.price);
@@ -97,13 +98,35 @@ const QRScanner = () => {
         setTotalAmount(total);
     };
 
+    // const handleChange = (index, field, value) => {
+    //     const updated = [...products];
+    //     updated[index][field] =
+    //         field === "price" ? parseFloat(value) : parseInt(value);
+    //     setProducts(updated);
+    //     recalculateTotal(updated);
+    // };
+
     const handleChange = (index, field, value) => {
-        const updated = [...products];
-        updated[index][field] =
-            field === "price" ? parseFloat(value) : parseInt(value);
-        setProducts(updated);
+    setProducts((prev) => {
+        const updated = [...prev];
+
+        // Ensure the row exists
+        if (!updated[index]) {
+            updated[index] = { code: "", name: "", price: 0, quantity: 1 };
+        }
+
+        // Safe field assignment
+        if (["price", "quantity"].includes(field)) {
+            updated[index][field] = parseFloat(value) || 0;
+        } else {
+            updated[index][field] = value;
+        }
+
         recalculateTotal(updated);
-    };
+        return updated;
+    });
+};
+
 
     const handleClearAll = () => {
         scannedCodes.current.clear();
@@ -129,6 +152,7 @@ const QRScanner = () => {
     };
 
     const handleSaveBill = async () => {
+        console.log(products)
         if (!customerName.trim() || products.length === 0) {
             alert("Enter customer name and scan at least one product.");
             return;

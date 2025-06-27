@@ -14,4 +14,8 @@ const QRProductSchema = new mongoose.Schema({
   status: { type: String, enum: ["0", "1"], default: "1" },
 });
 
+QRProductSchema.index({ product_name: "text", product_code: "text" });
+QRProductSchema.index({ status: 1 });
+QRProductSchema.index({ status: 1, location: 1 });
+
 module.exports = mongoose.model("QRProduct", QRProductSchema);
