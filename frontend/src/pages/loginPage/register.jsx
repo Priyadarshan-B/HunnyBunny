@@ -20,7 +20,7 @@ function Register() {
         const fetchRoles = async () => {
             const response = await requestApi("GET", "/auth/roles");
             if (response.success) {
-                setRoles(response.data); 
+                setRoles(response.data);
             } else {
                 message.error("Failed to load roles");
             }
@@ -36,7 +36,7 @@ function Register() {
             username,
             email,
             password,
-            role, 
+            role,
         });
 
         if (response.success) {
@@ -88,7 +88,7 @@ function Register() {
                         >
                             <Select placeholder="Select Role">
                                 {roles.map((role) => (
-                                    <Option key={role.id} value={role.id}>
+                                    <Option key={role._id} value={role._id}>
                                         {role.role}
                                     </Option>
                                 ))}
