@@ -1,9 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Input, InputNumber, Button, Form } from "antd";
+import { SyncOutlined } from "@ant-design/icons";
 import { QRCodeCanvas } from "qrcode.react";
 import requestApi from "../../components/utils/axios";
 import "./generateQR.css";
-import { showSuccess, showError, showWarning } from "../../components/toast/toast";
+import {
+  showSuccess,
+  showError,
+  showWarning,
+} from "../../components/toast/toast";
 import { jwtDecode } from "jwt-decode";
 
 export default function QRForm() {
@@ -12,6 +17,7 @@ export default function QRForm() {
   const [qrId, setQrId] = useState(null);
   const [isQRGenerated, setIsQRGenerated] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+
   const qrRef = useRef(null);
 
   useEffect(() => {
@@ -106,7 +112,6 @@ export default function QRForm() {
     <div className="mx-auto p-6 rounded bg-white [background-color:var(--background)]">
       <h2 className="text-2xl font-semibold mb-6">Add Bakery Product</h2>
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Left Box - Form and Generate QR */}
         <div className="flex-1 border border-[var(--border-color)] rounded p-6 shadow-md [background-color:var(--background-1)]">
           <Form form={form} layout="vertical">
             <Form.Item
@@ -116,7 +121,10 @@ export default function QRForm() {
             >
               <Input
                 className="border border-[var(--border-color)]"
-                style={{ backgroundColor: "var(--document)", color: "var(--text)" }}
+                style={{
+                  backgroundColor: "var(--document)",
+                  color: "var(--text)",
+                }}
                 placeholder="Enter unique Product ID"
               />
             </Form.Item>
@@ -128,7 +136,10 @@ export default function QRForm() {
             >
               <Input
                 className="border border-[var(--border-color)]"
-                style={{ backgroundColor: "var(--document)", color: "var(--text)" }}
+                style={{
+                  backgroundColor: "var(--document)",
+                  color: "var(--text)",
+                }}
                 placeholder="e.g. Cinnamon Roll"
               />
             </Form.Item>
@@ -161,9 +172,15 @@ export default function QRForm() {
 
             <div className="flex gap-2 mt-2 float-right">
               <Button
-                style={{ backgroundColor: "#635bff", color: "white", border: "none" }}
+                style={{
+                  backgroundColor: "#635bff",
+                  color: "white",
+                  border: "none",
+                }}
                 type="default"
                 onClick={handleGenerateQR}
+                loading={loading ? { icon: <SyncOutlined spin /> } : false}
+                disabled={!isQRGenerated}
               >
                 Generate QR
               </Button>
@@ -180,7 +197,6 @@ export default function QRForm() {
           </Form>
         </div>
 
-        {/* Right Box - QR Code and Save */}
         <div className="flex-1 border border-[var(--border-color)] rounded p-6 shadow-md [background-color:var(--background-1)] flex flex-col items-center justify-center">
           {qrId ? (
             <div ref={qrRef} className="text-center">
@@ -194,7 +210,11 @@ export default function QRForm() {
               </p>
 
               <Button
-                style={{ backgroundColor: "green", color: "white", border: "none" }}
+                style={{
+                  backgroundColor: "green",
+                  color: "white",
+                  border: "none",
+                }}
                 type="primary"
                 onClick={handleSubmit}
                 loading={loading}
@@ -205,7 +225,9 @@ export default function QRForm() {
               </Button>
             </div>
           ) : (
-            <p className="text-gray-400 text-center">Generate QR to preview here</p>
+            <p className="text-gray-400 text-center">
+              Generate QR to preview here
+            </p>
           )}
         </div>
       </div>
