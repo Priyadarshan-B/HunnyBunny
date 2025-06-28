@@ -11,7 +11,6 @@ import { showSuccess, showError } from "../../components/toast/toast";
 import requestApi from "../../components/utils/axios";
 import { jwtDecode } from "jwt-decode";
 
-
 const QRScanner = () => {
     const webcamRef = useRef(null);
     const canvasRef = useRef(null);
@@ -24,7 +23,6 @@ const QRScanner = () => {
     const [customerName, setCustomerName] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("UPI");
     const [userLocation, setUserLocation] = useState("");
-
 
     useEffect(() => {
         const token = localStorage.getItem("D!");
@@ -70,13 +68,11 @@ const QRScanner = () => {
         return () => clearInterval(interval);
     }, [capture]);
 
-
-
     const fetchProduct = async (code) => {
         try {
             const res = await axios.get(`${apiHost}/products/qr_products?term=${code}`);
             const prod = res.data.data?.[0];
-            console.log(prod)
+            console.log(prod);
             if (!prod) throw new Error("Product not found");
 
             const price = parseFloat(prod.price);
@@ -92,44 +88,33 @@ const QRScanner = () => {
         }
     };
 
-
     const recalculateTotal = (updated) => {
         const total = updated.reduce((sum, p) => sum + p.price * p.quantity, 0);
         setTotalAmount(total);
     };
 
-    // const handleChange = (index, field, value) => {
-    //     const updated = [...products];
-    //     updated[index][field] =
-    //         field === "price" ? parseFloat(value) : parseInt(value);
-    //     setProducts(updated);
-    //     recalculateTotal(updated);
-    // };
+    const handleChange = (index, field, value) => {
+        setProducts((prev) => {
+            let updated = [...prev];
 
-   const handleChange = (index, field, value) => {
-    setProducts((prev) => {
-        let updated = [...prev];
-
-        if (field === "delete") {
-            updated.splice(index, 1);
-        } else {
-            if (!updated[index]) {
-                updated[index] = { code: "", name: "", price: 0, quantity: 1 };
-            }
-
-            if (["price", "quantity"].includes(field)) {
-                updated[index][field] = parseFloat(value) || 0;
+            if (field === "delete") {
+                updated.splice(index, 1);
             } else {
-                updated[index][field] = value;
+                if (!updated[index]) {
+                    updated[index] = { code: "", name: "", price: 0, quantity: 1 };
+                }
+
+                if (["price", "quantity"].includes(field)) {
+                    updated[index][field] = parseFloat(value) || 0;
+                } else {
+                    updated[index][field] = value;
+                }
             }
-        }
 
-        recalculateTotal(updated);
-        return updated;
-    });
-};
-
-
+            recalculateTotal(updated);
+            return updated;
+        });
+    };
 
     const handleClearAll = () => {
         scannedCodes.current.clear();
@@ -140,7 +125,7 @@ const QRScanner = () => {
     };
 
     const handleProductSelect = (product) => {
-        const exists = products.some(p => p.code === product.code);
+        const exists = products.some((p) => p.code === product.code);
         if (!exists) {
             const newProduct = {
                 code: product.code,
@@ -155,7 +140,7 @@ const QRScanner = () => {
     };
 
     const handleSaveBill = async () => {
-        console.log(products)
+        console.log(products);
         if (!customerName.trim() || products.length === 0) {
             alert("Enter customer name and scan at least one product.");
             return;
@@ -165,12 +150,12 @@ const QRScanner = () => {
             customer_name: customerName,
             total_amount: totalAmount,
             payment_method: paymentMethod,
-            location: userLocation, // 🔹 Include location
-            items: products.map(p => ({
+            location: userLocation,
+            items: products.map((p) => ({
                 product_name: p.name,
                 quantity: p.quantity,
-                unit_price: p.price
-            }))
+                unit_price: p.price,
+            })),
         };
 
         try {
@@ -183,13 +168,34 @@ const QRScanner = () => {
         }
     };
 
-  
     const handlePreviewBill = () => {
         const doc = generatePDF(products, totalAmount);
         const dataUri = doc.output("datauristring");
         setPdfUrl(dataUri);
         setShowPreview(true);
     };
+
+    useEffect(() => {
+        let inputBuffer = "";
+
+        const handleKeyPress = (e) => {
+            if (e.key === "Enter") {
+                const code = inputBuffer.trim();
+                inputBuffer = "";
+                if (code && !scannedCodes.current.has(code)) {
+                    scannedCodes.current.add(code);
+                    fetchProduct(code);
+                }
+            } else {
+                inputBuffer += e.key;
+            }
+        };
+
+        window.addEventListener("keypress", handleKeyPress);
+        return () => {
+            window.removeEventListener("keypress", handleKeyPress);
+        };
+    }, []);
 
     return (
         <div className="qr-container">
