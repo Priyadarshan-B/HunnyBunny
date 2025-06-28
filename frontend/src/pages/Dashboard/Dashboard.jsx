@@ -133,10 +133,10 @@ function Dashboard(props) {
             totalValue={stats.totalPrice}
           />
 
-          <DashboardCharts
+          {/* <DashboardCharts
             topProducts={topProducts}
             setDrawerOpen={setDrawerOpen}
-          />
+          /> */}
 
           <ProductDrawerChart
             drawerOpen={drawerOpen}
