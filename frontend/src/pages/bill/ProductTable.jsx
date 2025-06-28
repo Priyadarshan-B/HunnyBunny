@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Table, Input, Button, Space, Select, Spin } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Input, Button, Space, Select, Spin, Modal,Popconfirm  } from "antd"; // Import Modal
+import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons"; // Import ExclamationCircleOutlined
 import requestApi from "../../components/utils/axios";
 import { debounce } from "lodash";
-import CreatableSelect from 'react-select/creatable';
 import { jwtDecode } from "jwt-decode";
+import CustomCreatableSelect from "../../components/select/CreateSelect";
 
 const { Option } = Select;
 
@@ -22,8 +22,8 @@ const ProductTable = ({
   const [location, setLocation] = useState("");
   const [inputMode, setInputMode] = useState({});
 
-
   useEffect(() => {
+    // Ensure dataSource is initialized with at least one empty row if products is empty
     setDataSource(
       products.length > 0
         ? products
@@ -74,8 +74,6 @@ const ProductTable = ({
     debouncedFetch(value);
   };
 
-  
-
   const handleAddRow = () => {
     setDataSource((prev) => [
       ...prev,
@@ -84,48 +82,48 @@ const ProductTable = ({
   };
 
   const handleDeleteRow = (index) => {
-    const newData = [...dataSource];
-    newData.splice(index, 1);
-    setDataSource(newData);
-    handleChange(index, "delete", null);
-  };
-
-  const customStyles = {
-  control: (base) => ({
-    ...base,
-    minHeight: '32px',
-    fontSize: '0.875rem', 
-    borderColor: '#d1d5db',
-    boxShadow: 'none',
-    '&:hover': { borderColor: '#9ca3af' },
-  }),
-  menu: (base) => ({
-    ...base,
-    fontSize: '0.875rem',
-    zIndex: 9999,
-  }),
-  input: (base) => ({
-    ...base,
-    padding: '2px 6px',
-  }),
+  const newData = [...dataSource];
+  newData.splice(index, 1);
+  setDataSource(newData);
+  handleChange(index, "delete", null);
 };
 
 
+  const customStyles = {
+    control: (base) => ({
+      ...base,
+      minHeight: "32px",
+      fontSize: "0.875rem",
+      borderColor: "#d1d5db",
+      boxShadow: "none",
+      "&:hover": { borderColor: "#9ca3af" },
+    }),
+    menu: (base) => ({
+      ...base,
+      fontSize: "0.875rem",
+      zIndex: 9999,
+    }),
+    input: (base) => ({
+      ...base,
+      padding: "2px 6px",
+    }),
+  };
+
   const onFieldChange = (index, field, value) => {
     const updated = [...dataSource];
-    updated[index][field] = field === "price" || field === "quantity" ? Number(value) : value;
+    updated[index][field] =
+      field === "price" || field === "quantity" ? Number(value) : value;
     setDataSource(updated);
     handleChange(index, field, value);
 
     if (["code", "name"].includes(field)) {
-        const productFieldList = productList.map(p => p[field]);
-        setInputMode(prev => ({
-            ...prev,
-            [`${field}-${index}`]: !productFieldList.includes(value)
-        }));
+      const productFieldList = productList.map((p) => p[field]);
+      setInputMode((prev) => ({
+        ...prev,
+        [`${field}-${index}`]: !productFieldList.includes(value),
+      }));
     }
-};
-
+  };
 
   const handleProductSelectDropdown = (code) => {
     const selected = productList.find((p) => p.code === code);
@@ -140,92 +138,88 @@ const ProductTable = ({
   };
 
   const columns = [
-  {
-    title: 'Code',
-    dataIndex: 'code',
-    render: (text, record, index) => (
-      <CreatableSelect
-        className="min-w-[140px]"
-        styles={customStyles}
-        placeholder="code"
-        value={text ? { label: text, value: text } : null}
-        onInputChange={debounce((inputValue) => {
-          if (inputValue) fetchProducts(inputValue);
-        }, 300)}
-        onChange={(option) => {
-          const value = option?.value || "";
-          const product = productList.find(p => p.code === value);
+    {
+      title: "Code",
+      dataIndex: "code",
+      render: (text, record, index) => (
+        <CustomCreatableSelect
+          className="min-w-[140px]"
+          placeholder="code"
+          value={text ? { label: text, value: text } : null}
+          onInputChange={(inputValue) => {
+            if (inputValue) fetchProducts(inputValue);
+          }}
+          onChange={(option) => {
+            const value = option?.value || "";
+            const product = productList.find((p) => p.code === value);
 
-          const updated = [...dataSource];
-          if (product) {
-            updated[index] = {
-              code: product.code,
-              name: product.name,
-              price: parseFloat(product.price),
-              quantity: 1,
-            };
-          } else {
-            updated[index].code = value;
-          }
-          setDataSource(updated);
-          handleChange(index, 'code', value);
-          if (product) {
-            handleChange(index, 'name', product.name);
-            handleChange(index, 'price', parseFloat(product.price));
-            handleChange(index, 'quantity', 1);
-          }
-        }}
-        isClearable
-        options={productList.map(p => ({
-          label: `${p.code} - ${p.name}`,
-          value: p.code,
-        }))}
-      />
-    ),
-  },
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    render: (text, record, index) => (
-      <CreatableSelect
-        className="min-w-[180px]"
-        styles={customStyles}
-        placeholder=" name"
-        value={text ? { label: text, value: text } : null}
-        onInputChange={debounce((inputValue) => {
-          if (inputValue) fetchProducts(inputValue);
-        }, 300)}
-        onChange={(option) => {
-          const value = option?.value || "";
-          const product = productList.find(p => p.name === value);
+            const updated = [...dataSource];
+            if (product) {
+              updated[index] = {
+                code: product.code,
+                name: product.name,
+                price: parseFloat(product.price),
+                quantity: 1,
+              };
+            } else {
+              updated[index].code = value;
+            }
+            setDataSource(updated);
+            handleChange(index, "code", value);
+            if (product) {
+              handleChange(index, "name", product.name);
+              handleChange(index, "price", parseFloat(product.price));
+              handleChange(index, "quantity", 1);
+            }
+          }}
+          options={productList.map((p) => ({
+            label: `${p.code} - ${p.name}`,
+            value: p.code,
+          }))}
+        />
+      ),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      render: (text, record, index) => (
+        <CustomCreatableSelect
+          className="min-w-[180px]"
+          placeholder="name"
+          value={text ? { label: text, value: text } : null}
+          onInputChange={(inputValue) => {
+            if (inputValue) fetchProducts(inputValue);
+          }}
+          onChange={(option) => {
+            const value = option?.value || "";
+            const product = productList.find((p) => p.name === value);
 
-          const updated = [...dataSource];
-          if (product) {
-            updated[index] = {
-              code: product.code,
-              name: product.name,
-              price: parseFloat(product.price),
-              quantity: 1,
-            };
-          } else {
-            updated[index].name = value;
-          }
-          setDataSource(updated);
-          handleChange(index, 'name', value);
-          if (product) {
-            handleChange(index, 'code', product.code);
-            handleChange(index, 'price', parseFloat(product.price));
-            handleChange(index, 'quantity', 1);
-          }
-        }}
-        isClearable
-        options={productList.map(p => ({
-          label: `${p.name} (${p.code})`,
-          value: p.name,
-        }))}
-      />
-    ),
-  },
+            const updated = [...dataSource];
+            if (product) {
+              updated[index] = {
+                code: product.code,
+                name: product.name,
+                price: parseFloat(product.price),
+                quantity: 1,
+              };
+            } else {
+              updated[index].name = value;
+            }
+            setDataSource(updated);
+            handleChange(index, "name", value);
+            if (product) {
+              handleChange(index, "code", product.code);
+              handleChange(index, "price", parseFloat(product.price));
+              handleChange(index, "quantity", 1);
+            }
+          }}
+          options={productList.map((p) => ({
+            label: `${p.name} (${p.code})`,
+            value: p.name,
+          }))}
+        />
+      ),
+    },
     {
       title: "Qty",
       dataIndex: "quantity",
@@ -264,11 +258,16 @@ const ProductTable = ({
       title: "Action",
       key: "action",
       render: (_, __, index) => (
-        <Button
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleDeleteRow(index)}
-        />
+        <Popconfirm
+  title="Delete this product?"
+  description="Are you sure you want to delete this product?"
+  okText="Yes"
+  cancelText="No"
+  onConfirm={() => handleDeleteRow(index)}
+>
+  <Button danger icon={<DeleteOutlined />} />
+</Popconfirm>
+
       ),
     },
   ];

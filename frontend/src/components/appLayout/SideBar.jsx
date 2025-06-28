@@ -120,7 +120,6 @@ function SideBar(props) {
 
     return (
         <div ref={sidebarRef} className={props.open ? "app-sidebar sidebar-open" : "app-sidebar"}>
-            {/* USER SECTION */}
             <div
                 style={{
                     border: "1px solid var(--border-color)",
@@ -151,7 +150,7 @@ function SideBar(props) {
                         <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "var(--text)" }}>
                             <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
                             <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>
-                            <p><b>Location :</b> {userInfo?.location || "N/A"}</p> {/* Customize if token includes location */}
+                            <p><b>Location :</b> {userInfo?.lname || "N/A"}</p> 
                         </div>
                     </div>
                 )}

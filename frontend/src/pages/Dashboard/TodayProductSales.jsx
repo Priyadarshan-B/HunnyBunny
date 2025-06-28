@@ -1,107 +1,112 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
-    Paper, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, TextField, Box, Typography, TablePagination
-} from "@mui/material";
+  Table,
+  DatePicker,
+  Typography,
+  Empty,
+  Pagination,
+} from "antd";
 import dayjs from "dayjs";
-import axios from "axios";
 import requestApi from "../../components/utils/axios";
 
-const ROWS_PER_PAGE_OPTIONS = [5, 10, 15];
+const { Title } = Typography;
 
 const TodayProductSales = () => {
-    const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
-    const [sales, setSales] = useState([]);
-    const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState(dayjs());
+  const [sales, setSales] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+  useEffect(() => {
+    fetchSales(date.format("YYYY-MM-DD"));
+    setPage(1);
+  }, [date]);
 
-    const fetchSales = async (selectedDate) => {
-        try {
-            setLoading(true);
-            const res = await requestApi("GET",`/dashboard/tdy-products?date=${selectedDate}`);
-            setSales(res.data);
-        } catch (err) {
-            console.error("Failed to fetch sales data", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchSales = async (selectedDate) => {
+    try {
+      setLoading(true);
+      const res = await requestApi("GET", `/dashboard/tdy-products?date=${selectedDate}`);
+      setSales(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to fetch sales data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        fetchSales(date);
-        setPage(0); // reset to page 0 when date changes
-    }, [date]);
+  const paginatedSales = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return sales.slice(start, start + pageSize);
+  }, [sales, page, pageSize]);
 
-    const handleDateChange = (e) => {
-        setDate(e.target.value);
-    };
+  const columns = [
+    {
+      title: <strong>Product Name</strong>,
+      dataIndex: "product_name",
+      key: "product_name",
+    },
+    {
+      title: <strong>Quantity</strong>,
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: <strong>Total Price</strong>,
+      dataIndex: "total_price",
+      key: "total_price",
+      render: (price) => `₹ ${Number(price).toFixed(2)}`
+    },
+  ];
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
+  return (
+    <div className="bg-[var(--background-1)] mt-3 text-[var(--text)] p-4 rounded-xl flex-1 w-full min-h-[360px]">
+      <div className="flex justify-between items-center mb-4">
+        <Title level={4} className="!text-[var(--text)] !mb-0">
+          Sales Summary
+        </Title>
+        <DatePicker
+          value={date}
+          onChange={(val) => setDate(val || dayjs())}
+          allowClear={false}
+         
+          style={{ minWidth: 120 }}
+        />
+      </div>
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const paginatedSales = sales.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-    return (
-        <Paper elevation={3} sx={{ mt: 1.5, p: 2, flex: "1", backgroundColor: "var(--background-1)" }}>
-            <Box sx={{ backgroundColor: "var(--background-1)", color: "var(--text)" }} display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Sales Summary</Typography>
-                <TextField
-                    type="date"
-                    size="small"
-                    value={date}
-                    onChange={handleDateChange}
-                />
-            </Box>
-
-            <TableContainer sx={{ backgroundColor: "var(--background-1)", color: "var(--text)" }}>
-                <Table>
-                    <TableHead sx={{ backgroundColor: "var(--background-1)" }}>
-                        <TableRow>
-                            <TableCell sx={{ color: "var(--text)" }}><strong>Product Name</strong></TableCell>
-                            <TableCell sx={{ color: "var(--text)" }}><strong>Quantity</strong></TableCell>
-                            <TableCell sx={{ color: "var(--text)" }}><strong>Total Price</strong></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {paginatedSales.length > 0 ? (
-                            paginatedSales.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell sx={{ color: "var(--text)" }}>{item.product_name}</TableCell>
-                                    <TableCell sx={{ color: "var(--text)" }}>{item.quantity}</TableCell>
-                                    <TableCell sx={{ color: "var(--text)" }}>₹ {item.total_price}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell sx={{ color: "var(--text)" }} colSpan={3} align="center">
-                                    {loading ? "Loading..." : "No data found"}
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
-            <TablePagination
-                sx={{ color: "var(--text)" }}
-                component="div"
-                count={sales.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
+      <Table
+        columns={columns}
+        dataSource={paginatedSales}
+        rowKey={(record, idx) => idx}
+        loading={loading}
+        pagination={false}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={loading ? "Loading..." : "No sales data found"}
             />
-        </Paper>
-    );
+          )
+        }}
+      />
+
+      {sales.length > 0 && (
+        <div className="flex justify-between items-center mt-4">
+          <Pagination
+            current={page}
+            total={sales.length}
+            pageSize={pageSize}
+            showSizeChanger
+            pageSizeOptions={["5", "10", "15"]}
+            onChange={(p, ps) => {
+              setPage(p);
+              setPageSize(ps);
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default TodayProductSales;

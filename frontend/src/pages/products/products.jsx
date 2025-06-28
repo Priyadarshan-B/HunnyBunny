@@ -8,6 +8,7 @@ import ProductCard from "./ProductCard";
 import EditProductModal from "./EditProductModal";
 import "./products.css";
 import { jwtDecode } from "jwt-decode";
+import { showError, showSuccess } from "../../components/toast/toast";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -89,8 +90,24 @@ const Products = () => {
       console.error("Failed to fetch quantities:", error);
     }
   };
+ const deleteProduct = async (id) => {
+  try {
+    const res = await requestApi("DELETE",`/products/qr_products/${id}`);
 
-  // On first mount, fetch first page
+    if (res.status === 200) {
+      showSuccess("Product Deleted");
+      fetchProducts();
+    } else {
+      showError("Failed to Delete Products")
+    }
+  } catch (error) {
+    console.error("Failed to delete product:", error);
+      showError("Failed to Delete Products")
+
+  }
+};
+
+
   useEffect(() => {
     setProducts([]);
     setEditStates({});
@@ -150,6 +167,24 @@ const Products = () => {
       ...prev,
       [id]: { qty: null, pkd: null, exp: null, editing: false },
     }));
+    const handleDeleteProduct = async (id) => {
+  try {
+    await deleteProduct(id);
+    message.success("Product deleted successfully");
+
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+
+    setEditStates((prev) => {
+      const newState = { ...prev };
+      delete newState[id];
+      return newState;
+    });
+  } catch (error) {
+    message.error("Failed to delete product");
+  }
+};
+
+
 
   const handleQtyChange = (id, value) => {
     setEditStates((prev) => ({
@@ -225,6 +260,7 @@ const Products = () => {
               handleSave={handleModalSave}
               handleCancel={handleCancel}
               handleDelete={handleDelete}
+              handleDeleteProduct= {handleDeleteProduct}
               handleQtyChange={handleQtyChange}
               handleDateChange={handleDateChange}
               openStickerModal={openStickerModal}

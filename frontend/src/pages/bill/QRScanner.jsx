@@ -106,26 +106,29 @@ const QRScanner = () => {
     //     recalculateTotal(updated);
     // };
 
-    const handleChange = (index, field, value) => {
+   const handleChange = (index, field, value) => {
     setProducts((prev) => {
-        const updated = [...prev];
+        let updated = [...prev];
 
-        // Ensure the row exists
-        if (!updated[index]) {
-            updated[index] = { code: "", name: "", price: 0, quantity: 1 };
-        }
-
-        // Safe field assignment
-        if (["price", "quantity"].includes(field)) {
-            updated[index][field] = parseFloat(value) || 0;
+        if (field === "delete") {
+            updated.splice(index, 1);
         } else {
-            updated[index][field] = value;
+            if (!updated[index]) {
+                updated[index] = { code: "", name: "", price: 0, quantity: 1 };
+            }
+
+            if (["price", "quantity"].includes(field)) {
+                updated[index][field] = parseFloat(value) || 0;
+            } else {
+                updated[index][field] = value;
+            }
         }
 
         recalculateTotal(updated);
         return updated;
     });
 };
+
 
 
     const handleClearAll = () => {

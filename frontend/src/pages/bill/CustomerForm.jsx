@@ -1,27 +1,39 @@
 import React from 'react';
+import { Input, Select } from 'antd';
 
-const CustomerForm = ({ customerName, setCustomerName, paymentMethod, setPaymentMethod }) => (
-    <div className="qr-form">
-        <label>Customer Name:</label>
-        <input
-            type="text"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            className="qr-input"
-        />
-        <label>Payment Method:</label>
-        <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="qr-select"
-        >
-            <option value="" disabled>Select Payment</option>
-            <option value="CASH">Cash</option>
-            <option value="UPI">UPI</option>
-            <option value="COD">Cash on Delivery</option>
-            <option value="CARD">Card</option>
-        </select>
+const { Option } = Select;
+
+const CustomerForm = ({
+  customerName,
+  setCustomerName,
+  paymentMethod,
+  setPaymentMethod
+}) => (
+  <div className="qr-form" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+    <div style={{ flex: 1, minWidth: '200px' }}>
+      <label className="block mb-1 font-medium">Customer Name:</label>
+      <Input
+        value={customerName}
+        onChange={(e) => setCustomerName(e.target.value)}
+        placeholder="Enter customer name"
+      />
     </div>
+
+    <div style={{ flex: 1, minWidth: '200px' }}>
+      <label className="block mb-1 font-medium">Payment Method:</label>
+      <Select
+        value={paymentMethod}
+        onChange={setPaymentMethod}
+        placeholder="Select Payment"
+        style={{ width: '100%' }}
+      >
+        <Option value="CASH">Cash</Option>
+        <Option value="UPI">UPI</Option>
+        <Option value="COD">Cash on Delivery</Option>
+        <Option value="CARD">Card</Option>
+      </Select>
+    </div>
+  </div>
 );
 
 export default CustomerForm;

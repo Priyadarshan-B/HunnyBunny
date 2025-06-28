@@ -13,4 +13,5 @@ router.use("/products", productsRoutes);
 router.use("/bills", billsRoutes);
 router.use("/dashboard", dashboardRoutes);
 
+
 module.exports = router;

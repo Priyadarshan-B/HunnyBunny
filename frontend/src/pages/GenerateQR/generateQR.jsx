@@ -57,7 +57,7 @@ export default function QRForm() {
       formData.append("quantity", values.quantity);
       formData.append("qr_image", blob, `${values.product_id}.png`);
       formData.append("product_id", values.product_id);
-      formData.append("location", userLocation); // ✅ Auto-sending user location
+      formData.append("location", userLocation);
 
       await requestApi("POST", "/products/qr_products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -85,7 +85,7 @@ export default function QRForm() {
         name: values.name,
         price: values.price,
         quantity: values.quantity,
-        location: userLocation, // ✅ Auto-sending user location
+        location: userLocation,
       };
 
       await requestApi("POST", "/products/qr_products", payload);
@@ -168,14 +168,14 @@ export default function QRForm() {
                 Generate QR
               </Button>
 
-              <Button
+              {/* <Button
                 style={{ backgroundColor: "#2196f3", color: "white", border: "none" }}
                 type="default"
                 onClick={handleSaveWithoutQR}
                 loading={loading}
               >
                 Save without QR
-              </Button>
+              </Button> */}
             </div>
           </Form>
         </div>

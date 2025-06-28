@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
-.custom-card {
+/* .custom-card {
     background-color: var(--background-1) !important;
     border: 1px solid var(--border-color);
     color: var(--text);
     font-family: "Outfit", sans-serif;
-}
+} */
 
-.custom-card .ant-card-actions {
+/* .custom-card .ant-card-actions {
     background-color: var(--background-1) !important;
     border-top: 1px solid var(--border-color);
     color: var(--text);
     font-family: "Outfit", sans-serif;
-}
+} */

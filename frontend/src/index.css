@@ -24,33 +24,23 @@ body {
   color: var(--text);
 }
 
-/* Style the scrollbar track */
 ::-webkit-scrollbar {
-  width: 8px;
-  /* Width of the scrollbar */
+  width: 5px;
 }
 
-/* Style the part of the scrollbar not covered by the thumb */
 ::-webkit-scrollbar-track {
   background: var(--background);
-  /* Background color of the track */
 }
 
-/* Style the draggable part of the scrollbar */
 ::-webkit-scrollbar-thumb {
-  background: #179be7;
-  /* Color of the thumb */
+  background: #b5b6b7;
   border-radius: 10px;
-  /* Optional: Adds rounded corners to the thumb */
 }
 
-/* Optional: Style the thumb on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: var(--background);
-  /* Change color when hovered */
 }
 
 ::-webkit-scrollbar {
   height: 4px;
-  /* Width of the horizontal scrollbar */
 }

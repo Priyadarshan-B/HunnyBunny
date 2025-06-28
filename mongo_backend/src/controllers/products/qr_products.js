@@ -158,3 +158,33 @@ exports.get_product_by_code = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product" });
   }
 };
+
+exports.delete_qr_product = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+
+    if (!product_id) {
+      return res.status(400).json({ error: "Product ID is required" });
+    }
+
+    const product = await QRProduct.findById(product_id);
+    console.log(product)
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    if (product.qr_code) {
+      const filePath = path.join(__dirname, "../../public", product.qr_code);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await QRProduct.deleteOne({ _id: product_id });
+
+    return res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    return res.status(500).json({ error: "Failed to delete product" });
+  }
+};

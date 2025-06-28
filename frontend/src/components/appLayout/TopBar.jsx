@@ -2,7 +2,7 @@ import React, { useState, useEffect, use } from "react";
 import { useNavigate } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import CustomizedSwitches from "./toggleTheme";
+import ThemeToggleButton from "./theme/toggleThemeButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Dialog from "@mui/material/Dialog";
@@ -131,7 +131,7 @@ function TopBar(props) {
           className="top-bar-menus"
           style={{ display: "flex", alignItems: "center", gap: "10px" }}
         >
-          <CustomizedSwitches />
+          <ThemeToggleButton />
 
           {/* <NotificationsActiveOutlinedIcon
                         sx={{ color: "#616773", fontSize: "22px", cursor: "pointer" }}

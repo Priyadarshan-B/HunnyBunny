@@ -57,23 +57,39 @@ exports.post_bill = async (req, res) => {
 
 exports.get_bills = async (req, res) => {
   try {
-    const { name, bill_id, location } = req.query;
+    const { name, bill_id, location, page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const query = {
-      status: '1',
-      ...(name ? { customer_name: { $regex: name, $options: 'i' } } : {}),
-      ...(bill_id ? { _id: { $regex: bill_id, $options: 'i' } } : {}),
-      ...(location ? { location } : {})
-    };
+    const query = { status: '1' };
 
-    const bills = await Bill.find(query).lean();
+    if (name) {
+      const num = parseInt(name);
+      query.$or = [
+        { customer_name: { $regex: name, $options: 'i' } },
+        ...(isNaN(num) ? [] : [{ bill_number: num }])
+      ];
+    }
+
+    if (bill_id) {
+      query.bill_number = parseInt(bill_id) || 0;
+    }
+
+    if (location) {
+      query.location = location;
+    }
+
+    const total = await Bill.countDocuments(query);
+    const bills = await Bill.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
 
     if (!bills.length) {
-      return res.status(404).json({ message: "No matching bills found" });
+      return res.status(200).json({ data: [], total: 0 });
     }
 
     const billIds = bills.map(b => b._id);
-
     const details = await BillDetail.find({ bill_id: { $in: billIds } });
 
     const billMap = {};
@@ -84,6 +100,7 @@ exports.get_bills = async (req, res) => {
         customer_name: bill.customer_name,
         total_amount: parseFloat(bill.total_amount.toString()),
         payment_method: bill.payment_method,
+        bill_number: bill.bill_number,
         date: bill.createdAt,
         location: bill.location,
         items: []
@@ -101,7 +118,7 @@ exports.get_bills = async (req, res) => {
       }
     });
 
-    res.status(200).json(Object.values(billMap));
+    res.status(200).json({ data: Object.values(billMap), total });
   } catch (error) {
     console.error("Error fetching bills:", error);
     res.status(500).json({ error: "Failed to fetch bills" });
