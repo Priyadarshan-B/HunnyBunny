@@ -23,7 +23,6 @@ const ProductTable = ({
     const [inputMode, setInputMode] = useState({});
 
     useEffect(() => {
-        // Ensure dataSource is initialized with at least one empty row if products is empty
         setDataSource(
             products.length > 0
                 ? products
@@ -87,28 +86,6 @@ const ProductTable = ({
         setDataSource(newData);
         handleChange(index, "delete", null);
     };
-
-
-    const customStyles = {
-        control: (base) => ({
-            ...base,
-            minHeight: "32px",
-            fontSize: "0.875rem",
-            borderColor: "#d1d5db",
-            boxShadow: "none",
-            "&:hover": { borderColor: "#9ca3af" },
-        }),
-        menu: (base) => ({
-            ...base,
-            fontSize: "0.875rem",
-            zIndex: 9999,
-        }),
-        input: (base) => ({
-            ...base,
-            padding: "2px 6px",
-        }),
-    };
-
     const onFieldChange = (index, field, value) => {
         const updated = [...dataSource];
         updated[index][field] =

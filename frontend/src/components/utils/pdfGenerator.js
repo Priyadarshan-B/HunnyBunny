@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import { toWords } from "number-to-words";
 
-const generatePDF = (products, totalAmount) => {
+const generatePDF = (products, totalAmount, customerName) => {
   const lineHeight = 12;
   const headerLines = 9;
   const footerLines = 12;
@@ -34,6 +34,8 @@ const generatePDF = (products, totalAmount) => {
   doc.text("------------------------------------------", 113, y, {
     align: "center",
   });
+  y+=12;
+  doc.text(`Name: ${customerName}`, startX, y);
   y += 12;
 
   const date = new Date();
