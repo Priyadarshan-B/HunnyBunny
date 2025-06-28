@@ -239,7 +239,7 @@ const Products = () => {
             <div
               key={index}
               style={{
-                width: 240,
+                width: 400,
                 padding: 16,
                 border: "1px solid #f0f0f0",
                 borderRadius: 8,
