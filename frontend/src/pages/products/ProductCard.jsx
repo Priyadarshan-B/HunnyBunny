@@ -9,6 +9,7 @@ import {
 import PrintIcon from "@mui/icons-material/Print";
 import apiHost from "../../components/utils/api";
 import dayjs from "dayjs";
+import EventBusyIcon from '@mui/icons-material/EventBusy';
 
 const ProductCard = ({
   product,
@@ -65,7 +66,7 @@ const ProductCard = ({
         onConfirm={() => handleDelete(product.id)}
       >
         <Button
-          icon={<DeleteOutlined />}
+          icon={<EventBusyIcon />}
           type="text"
           shape="circle"
           danger

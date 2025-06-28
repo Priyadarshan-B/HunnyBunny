@@ -9,7 +9,7 @@ const CustomerForm = ({
   paymentMethod,
   setPaymentMethod
 }) => (
-  <div className="qr-form" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+  <div className="qr-form" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
     <div style={{ flex: 1, minWidth: '200px' }}>
       <label className="block mb-1 font-medium">Customer Name:</label>
       <Input
