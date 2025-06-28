@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Table, Input, Button, Space, Select, Spin, Modal,Popconfirm  } from "antd"; // Import Modal
-import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons"; // Import ExclamationCircleOutlined
+import {
+  Table,
+  Input,
+  Button,
+  Select,
+  Spin,
+  Popconfirm,
+} from "antd"; 
+import {
+  PlusOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons"; 
 import requestApi from "../../components/utils/axios";
 import { debounce } from "lodash";
 import { jwtDecode } from "jwt-decode";
@@ -23,7 +33,6 @@ const ProductTable = ({
   const [inputMode, setInputMode] = useState({});
 
   useEffect(() => {
-    // Ensure dataSource is initialized with at least one empty row if products is empty
     setDataSource(
       products.length > 0
         ? products
@@ -82,33 +91,11 @@ const ProductTable = ({
   };
 
   const handleDeleteRow = (index) => {
-  const newData = [...dataSource];
-  newData.splice(index, 1);
-  setDataSource(newData);
-  handleChange(index, "delete", null);
-};
-
-
-  const customStyles = {
-    control: (base) => ({
-      ...base,
-      minHeight: "32px",
-      fontSize: "0.875rem",
-      borderColor: "#d1d5db",
-      boxShadow: "none",
-      "&:hover": { borderColor: "#9ca3af" },
-    }),
-    menu: (base) => ({
-      ...base,
-      fontSize: "0.875rem",
-      zIndex: 9999,
-    }),
-    input: (base) => ({
-      ...base,
-      padding: "2px 6px",
-    }),
+    const newData = [...dataSource];
+    newData.splice(index, 1);
+    setDataSource(newData);
+    handleChange(index, "delete", null);
   };
-
   const onFieldChange = (index, field, value) => {
     const updated = [...dataSource];
     updated[index][field] =
@@ -259,15 +246,14 @@ const ProductTable = ({
       key: "action",
       render: (_, __, index) => (
         <Popconfirm
-  title="Delete this product?"
-  description="Are you sure you want to delete this product?"
-  okText="Yes"
-  cancelText="No"
-  onConfirm={() => handleDeleteRow(index)}
->
-  <Button danger icon={<DeleteOutlined />} />
-</Popconfirm>
-
+          title="Delete this product?"
+          description="Are you sure you want to delete this product?"
+          okText="Yes"
+          cancelText="No"
+          onConfirm={() => handleDeleteRow(index)}
+        >
+          <Button danger icon={<DeleteOutlined />} />
+        </Popconfirm>
       ),
     },
   ];

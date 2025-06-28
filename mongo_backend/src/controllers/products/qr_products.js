@@ -16,8 +16,7 @@ exports.post_qr_products = async (req, res) => {
     let qr_Path = "";
     if (qrImage) {
       const uploadDir = path.join(__dirname, "../../public/qr-codes");
-      if (!fs.existsSync(uploadDir))
-        fs.mkdirSync(uploadDir, { recursive: true });
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
       const fileName = `${product_id}.png`;
       const filePath = path.join(uploadDir, fileName);
@@ -32,19 +31,13 @@ exports.post_qr_products = async (req, res) => {
       const finalQRCode =
         existing.qr_code?.trim() !== "" ? existing.qr_code : qr_Path;
 
-      existing.product_price = mongoose.Types.Decimal128.fromString(
-        price.toString()
-      );
-      existing.product_quantity =
-        existing.product_quantity + parseInt(quantity);
-      existing.product_name = name;
+      existing.product_price = mongoose.Types.Decimal128.fromString(price.toString());
+      existing.product_quantity += parseInt(quantity);
       existing.qr_code = finalQRCode;
 
       await existing.save();
 
-      return res
-        .status(200)
-        .json({ message: "Matching product updated successfully" });
+      return res.status(200).json({ message: "Matching product updated successfully" });
     } else {
       const newProduct = new QRProduct({
         product_code: product_id,
@@ -58,15 +51,22 @@ exports.post_qr_products = async (req, res) => {
 
       await newProduct.save();
 
-      return res
-        .status(200)
-        .json({ message: "New product inserted successfully" });
+      return res.status(200).json({ message: "New product inserted successfully" });
     }
   } catch (error) {
     console.error("Error processing QR product:", error);
-    res.status(500).json({ error: "Failed to process QR product" });
+
+    if (error.code === 11000) {
+      const duplicatedField = Object.keys(error.keyValue)[0];
+      const message = `Duplicate entry for ${duplicatedField}: "${error.keyValue[duplicatedField]}"`;
+
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: "Failed to process QR product" });
   }
 };
+
 
 exports.get_qr_products = async (req, res) => {
   try {

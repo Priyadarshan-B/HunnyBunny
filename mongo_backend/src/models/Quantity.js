@@ -5,7 +5,7 @@ const QuantitySchema = new mongoose.Schema({
     expansion: { type: String, required: true },
     status: { type: String, enum: ['0', '1'], default: '1' }
 }, {
-    timestamps: true  // Adds createdAt and updatedAt automatically
+    timestamps: true 
 });
 
 module.exports = mongoose.model('Quantity', QuantitySchema);
