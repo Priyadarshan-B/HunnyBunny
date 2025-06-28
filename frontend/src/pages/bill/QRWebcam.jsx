@@ -1,4 +1,3 @@
-// QRWebcam.jsx
 import React, { useRef, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import jsQR from 'jsqr';
