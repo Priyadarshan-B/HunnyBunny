@@ -1,5 +1,19 @@
 {
-    "dependencies": {
-        "lodash": "^4.17.21"
-    }
+  "name": "qr-billing-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev-frontend\" \"npm run dev-backend\"",
+    "dev-frontend": "cd frontend && npm run dev",
+    "dev-backend": "cd mongo_backend && nodemon src/app.js",
+    "build-frontend": "cd frontend && npm run build",
+    "electron": "electron .",
+    "start-prod": "npm run build-frontend && cross-env NODE_ENV=production electron ."
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  }
 }
