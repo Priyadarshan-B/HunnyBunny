@@ -2,18 +2,79 @@
   "name": "qr-billing-desktop",
   "version": "1.0.0",
   "main": "main.js",
+  "author": "Priyan",
+  "description": "Billing Desktop App for Hunny Bunny Bakery",
   "scripts": {
     "dev": "concurrently \"npm run dev-frontend\" \"npm run dev-backend\"",
     "dev-frontend": "cd frontend && npm run dev",
-    "dev-backend": "cd mongo_backend && nodemon src/app.js",
-    "build-frontend": "cd frontend && npm run build",
+    "dev-backend": "cd mongo_backend && node src/app.js",
+
+    "build-frontend": "cd frontend && npm install && npm run build",
+    "install-backend-deps": "cd mongo_backend && npm install",
+    "check-backend-node-modules": "node -e \"const fs = require('fs'); const path = './mongo_backend/node_modules'; if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) { console.error('❌ node_modules missing in mongo_backend'); process.exit(1); } else { console.log('✅ mongo_backend/node_modules is ready'); }\"",
+
+    "prepare-app": "npm run install-backend-deps && npm run check-backend-node-modules && npm run build-frontend",
+    "dist": "npm run prepare-app && electron-builder",
+    "dist-debug": "npm run prepare-app && DEBUG=electron-builder electron-builder",
+
     "electron": "electron .",
-    "start-prod": "npm run build-frontend && cross-env NODE_ENV=production electron ."
+    "start-prod": "npm run prepare-app && cross-env NODE_ENV=production electron ."
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^30.5.1",
     "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.0.0",
+    "electron-log": "^5.4.1"
+  },
+  "build": {
+    "appId": "com.hunnybunny.billing",
+    "productName": "qr-billing-desktop",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "asarUnpack": [
+      "mongo_backend/**/*"
+    ],
+    "files": [
+      "main.js",
+      "splash.html",
+      "frontend/dist/**/*",
+      "frontend/src/assets/**/*",
+      "mongo_backend/**/*",
+      "!mongo_backend/src/**/*.test.js",
+      "!mongo_backend/node_modules/.bin",
+      "!mongo_backend/.git",
+      "!mongo_backend/src/logs/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "mongo_backend/node_modules",
+        "to": "app.asar.unpacked/mongo_backend/node_modules",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Hunny Bunny Billing",
+      "runAfterFinish": true,
+      "include": "installer.nsh"
+    }
   }
 }

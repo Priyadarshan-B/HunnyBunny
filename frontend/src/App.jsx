@@ -8,7 +8,7 @@ import {
 import AppLayout from "./components/appLayout/Layout";
 import ToastMessage from "./components/toast/toast";
 import ThemeProviderWrapper from "./components/appLayout/theme/toggleTheme";
-
+ 
 import Scan from "./pages/bill/Scan";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import QRForm from "./pages/GenerateQR/generateQR";
