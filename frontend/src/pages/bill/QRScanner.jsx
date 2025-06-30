@@ -112,29 +112,35 @@ const QRScanner = () => {
   };
 
   const recalculateTotal = (updated) => {
+    console.log(updated)
     const total = updated.reduce((sum, p) => sum + p.price * p.quantity, 0);
     setTotalAmount(total);
+    console.log("total", total)
   };
 
-  const handleChange = (index, field, value) => {
-    setProducts((prev) => {
-      let updated = [...prev];
-      if (field === "delete") {
-        updated.splice(index, 1);
-      } else {
-        if (!updated[index]) {
-          updated[index] = { code: "", name: "", price: 0, quantity: 1 };
-        }
-        if (["price", "quantity"].includes(field)) {
-          updated[index][field] = parseFloat(value) || 0;
-        } else {
-          updated[index][field] = value;
-        }
+const handleChange = (index, field, value) => {
+  setProducts((prev) => {
+    let updated = [...prev];
+    if (field === "delete") {
+      updated.splice(index, 1);
+    } else {
+      if (!updated[index]) {
+        updated[index] = { code: "", name: "", price: 0, quantity: 1 };
       }
-      recalculateTotal(updated);
-      return updated;
-    });
-  };
+      if (["price", "quantity"].includes(field)) {
+        updated[index][field] = parseFloat(value) || 0;
+      } else {
+        updated[index][field] = value;
+      }
+    }
+
+    setTimeout(() => recalculateTotal(updated), 0); 
+    return updated;
+  });
+};
+useEffect(() => {
+  recalculateTotal(products);
+}, [products]);
 
   const handleClearAll = () => {
     scannedCodes.current.clear();
@@ -196,7 +202,6 @@ const handleSaveBill = async () => {
     await requestApi("POST", `/bills/bill-details`, buildPayload());
     showSuccess("Bill saved successfully!");
     handlePreviewBill();
-    handleClearAll();
   } catch {
     showError("Failed to save bill.");
   } finally {
@@ -205,10 +210,12 @@ const handleSaveBill = async () => {
 };
 
   const handlePreviewBill = () => {
-    const doc = generatePDF(products, totalAmount);
+    const doc = generatePDF(products, totalAmount, customerName);
     const dataUri = doc.output("datauristring");
     setPdfUrl(dataUri);
     setShowPreview(true);
+    handleClearAll();
+
   };
 
   useEffect(() => {
@@ -286,7 +293,7 @@ const handleSaveBill = async () => {
           pdfUrl={pdfUrl}
           onClose={() => setShowPreview(false)}
           onDownload={() => {
-            const doc = generatePDF(products, totalAmount);
+            const doc = generatePDF(products, totalAmount, customerName);
             doc.save("Product_Bill.pdf");
             setShowPreview(false);
           }}
