@@ -4,7 +4,7 @@ import {
   MenuOutlined,
   LogoutOutlined,
   BellOutlined,
-  UserAddOutlined
+  UserAddOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -15,7 +15,7 @@ import {
   Typography,
   Badge,
   Button,
-  Divider
+  Divider,
 } from "antd";
 import { jwtDecode } from "jwt-decode";
 import ThemeToggleButton from "./theme/toggleThemeButton";
@@ -28,7 +28,8 @@ function TopBar(props) {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ name: "", email: "", role: "" });
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+  const [notificationModalVisible, setNotificationModalVisible] =
+    useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("D!");
@@ -59,10 +60,16 @@ function TopBar(props) {
       <Menu.Item disabled>
         <Text strong>{userData.name}</Text>
         <br />
-        <Text type="secondary" style={{ fontSize: 12 }}>{userData.email}</Text>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {userData.email}
+        </Text>
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="logout" onClick={() => setLogoutModalVisible(true)} icon={<LogoutOutlined />}>
+      <Menu.Item
+        key="logout"
+        onClick={() => setLogoutModalVisible(true)}
+        icon={<LogoutOutlined />}
+      >
         Logout
       </Menu.Item>
     </Menu>
@@ -79,10 +86,20 @@ function TopBar(props) {
         boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <MenuOutlined onClick={props.sidebar} style={{ fontSize: 20, color: "#7e57c2" }} />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+        }}
+      >
+        <MenuOutlined
+          onClick={props.sidebar}
+          className="show-on-mobile"
+          style={{ fontSize: 20, color: "#7e57c2" }}
+        />
         <img src={logo} alt="logo" style={{ height: 40 }} />
-        <b>Hunny Bunny</b>
+        <b className="hide-on-mobile">Hunny Bunny</b>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -102,8 +119,14 @@ function TopBar(props) {
           />
         )}
 
-        <Dropdown overlay={userMenu} trigger={["click"]} placement="bottomRight">
-          <Avatar style={{ backgroundColor: "#0a6259", cursor: "pointer" }}>{firstLetter}</Avatar>
+        <Dropdown
+          overlay={userMenu}
+          trigger={["click"]}
+          placement="bottomRight"
+        >
+          <Avatar style={{ backgroundColor: "#0a6259", cursor: "pointer" }}>
+            {firstLetter}
+          </Avatar>
         </Dropdown>
       </div>
 
@@ -124,14 +147,22 @@ function TopBar(props) {
         open={notificationModalVisible}
         title="Notifications"
         onCancel={() => setNotificationModalVisible(false)}
-        footer={[<Button key="close" onClick={() => setNotificationModalVisible(false)}>Close</Button>]}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => setNotificationModalVisible(false)}
+          >
+            Close
+          </Button>,
+        ]}
       >
         {props.lowStockProducts?.length > 0 ? (
           props.lowStockProducts.map((prod, index) => (
             <React.Fragment key={index}>
               <div
                 style={{
-                  backgroundColor: prod.product_quantity <= 5 ? "#ffe5e5" : "#fff8e1",
+                  backgroundColor:
+                    prod.product_quantity <= 5 ? "#ffe5e5" : "#fff8e1",
                   borderRadius: 8,
                   padding: 12,
                   marginBottom: 12,
@@ -139,7 +170,8 @@ function TopBar(props) {
                 }}
               >
                 <Text strong style={{ color: "#333" }}>
-                  ⚠️ <b>{prod.name}</b> has only <b>{prod.product_quantity}</b> left.
+                  ⚠️ <b>{prod.name}</b> has only <b>{prod.product_quantity}</b>{" "}
+                  left.
                 </Text>
                 <br />
                 <Text type="secondary" style={{ fontSize: "12px" }}>
