@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Modal, Input, Button } from "antd";
+import { Modal, Input, Button, Select } from "antd";
 import { PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
@@ -20,48 +20,44 @@ const StickerModal = ({
     const input = previewRef.current;
     if (!input) return;
 
-    const stickerWrapper = document.createElement("div");
-    stickerWrapper.style.position = "absolute";
-    stickerWrapper.style.right = "-9999px";
-    stickerWrapper.style.top = "0";
-    document.body.appendChild(stickerWrapper);
+    const inchToMm = 25.4;
+    const stickerWidth = 2 * inchToMm; // 50.8 mm
+    const stickerHeight = 1 * inchToMm; // 25.4 mm
+    const gapY = 6; // vertical gap in mm
+    const pageWidth = 4.5 * inchToMm; // 114.3 mm
 
-    const stickerWidth = 50; // mm
-    const stickerHeight = 26.5; // mm (increased to avoid clipping)
-    const verticalGap = 3; // mm
-    const buffer = 5; // extra bottom buffer
-    const stickersPerRow = 2;
-
+    const stickersPerRow = Math.floor(pageWidth / stickerWidth); // should be 2
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
-    const pageHeight = totalRows * (stickerHeight + verticalGap) - verticalGap + buffer;
-    const pageWidth = stickerWidth * stickersPerRow;
+    const pageHeight = totalRows * stickerHeight + (totalRows - 1) * gapY;
 
     const pdf = new jsPDF({
       unit: "mm",
       format: [pageWidth, pageHeight],
     });
 
+    const hiddenContainer = document.createElement("div");
+    hiddenContainer.style.position = "absolute";
+    hiddenContainer.style.top = "-9999px";
+    hiddenContainer.style.left = "0";
+    hiddenContainer.style.width = `${stickerWidth}mm`;
+    hiddenContainer.style.height = `${stickerHeight}mm`;
+    document.body.appendChild(hiddenContainer);
+
     for (let i = 0; i < stickerCount; i++) {
       const clone = input.cloneNode(true);
       clone.style.margin = "0";
-      clone.style.display = "inline-block";
-      clone.style.backgroundColor = "white";
-      clone.style.color = "black";
-      clone.style.padding = "10px";
+      clone.style.padding = "0";
+      clone.style.width = `${stickerWidth * 3.78}px`; // mm to px
+      clone.style.height = `${stickerHeight * 3.78}px`;
       clone.style.boxSizing = "border-box";
+      clone.style.border = "none";
 
-      clone.querySelectorAll("*").forEach((el) => {
-        el.style.color = "black";
-        el.style.backgroundColor = "white";
-      });
-
-      stickerWrapper.appendChild(clone);
-
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      hiddenContainer.appendChild(clone);
+      await new Promise((res) => setTimeout(res, 50));
 
       const canvas = await html2canvas(clone, {
         useCORS: true,
-        scale: 3,
+        scale: 2,
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -70,13 +66,14 @@ const StickerModal = ({
       const col = i % stickersPerRow;
 
       const x = col * stickerWidth;
-      const y = row * (stickerHeight + verticalGap);
+      const y = row * (stickerHeight + gapY);
 
       pdf.addImage(imgData, "PNG", x, y, stickerWidth, stickerHeight);
-      stickerWrapper.removeChild(clone);
+
+      hiddenContainer.removeChild(clone);
     }
 
-    document.body.removeChild(stickerWrapper);
+    document.body.removeChild(hiddenContainer);
     pdf.output("dataurlnewwindow");
   };
 
@@ -93,18 +90,15 @@ const StickerModal = ({
           <div
             ref={previewRef}
             style={{
-              width: 189, // ~50mm
-              height: 100, // ~26.5mm
-              padding: 10,
-              boxSizing: "border-box",
+              width: 189,
+              height: 94,
+              padding: 7,
               textAlign: "center",
-              border: "1px dashed gray",
-              margin: "0",
+              border: "1px solid lightgray",
+              margin: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "white",
-              color: "black",
             }}
           >
             <div className="flex flex-row gap-2 justify-center items-center">
@@ -115,51 +109,66 @@ const StickerModal = ({
                   alt="QR"
                   style={{ width: 50, height: 50 }}
                 />
-                <p style={{ fontWeight: "bold", fontSize: "10px" }}>{product.code}</p>
-              </div>
-              <div style={{ textAlign: "left" }}>
-                <p style={{ fontWeight: "bold", fontSize: "10px" }}>Hunny Bunny</p>
                 <p style={{ fontWeight: "bold", fontSize: "10px" }}>
-                  {product.name.toUpperCase()}
+                  {product.code}
                 </p>
-                <div className="flex flex-row gap-2 mt-1 justify-between">
-                  <p style={{ fontSize: "8px", margin: 0 }}>
-                    pkd:{" "}
-                    {editStates[product.id]?.pkd
-                      ? dayjs(editStates[product.id].pkd, "DD-MM-YYYY").format("DD-MM-YYYY")
-                      : "--"}
-                  </p>
-                  <p style={{ fontSize: "8px", margin: 0, fontWeight: 600 }}>
-                    MRP {product.price}
-                  </p>
-                </div>
-                <div className="flex flex-row gap-2 justify-between">
-                  <p style={{ fontSize: "8px", margin: 0 }}>
-                    exp:{" "}
-                    {editStates[product.id]?.exp
-                      ? dayjs(editStates[product.id].exp, "DD-MM-YYYY").format("DD-MM-YYYY")
-                      : "--"}
-                  </p>
-                  <p style={{ fontSize: "8px", margin: 0 }}>
-                    {product.product_quantity} {editStates[product.id]?.qty}
-                  </p>
+              </div>
+              <div>
+                <p style={{ fontWeight: "bold", fontSize: "10px" }}>
+                  Hunny Bunny
+                </p>
+                <h4 style={{ fontWeight: "bold", fontSize: "10px" }}>
+                  {product.name.toUpperCase()}
+                </h4>
+                <div className="flex flex-row-reverse gap-4 mt-1">
+                  <div className="flex-1 flex-col">
+                    <p style={{ fontWeight: "600", fontSize: "9px" }}>
+                      MRP {product.price}
+                    </p>
+                    <p style={{ fontSize: "8px" }}>
+                      {product.product_quantity} {editStates[product.id]?.qty}
+                    </p>
+                  </div>
+                  <div className="flex flex-col align-middle">
+                    <p style={{ fontWeight: "400", fontSize: "8px" }}>
+                      pkd:{" "}
+                      {editStates[product.id]?.pkd
+                        ? dayjs(
+                            editStates[product.id].pkd,
+                            "DD-MM-YYYY"
+                          ).format("DD-MM-YYYY")
+                        : "--"}
+                    </p>
+                    <p style={{ fontWeight: "400", fontSize: "8px" }}>
+                      exp:{" "}
+                      {editStates[product.id]?.exp
+                        ? dayjs(
+                            editStates[product.id].exp,
+                            "DD-MM-YYYY"
+                          ).format("DD-MM-YYYY")
+                        : "--"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <Input
-            type="number"
-            min={4}
-            step={4}
+          <Select
             value={stickerCount}
-            onChange={(e) => {
-              const val = Number(e.target.value);
-              if (val % 4 === 0) setStickerCount(val);
-            }}
-            placeholder="Enter number of stickers (Multiples of 4)"
-            style={{ marginTop: 16 }}
-          />
+            onChange={setStickerCount}
+            placeholder="Select number of stickers"
+            style={{ marginTop: 16, width: "100%" }}
+          >
+            {[...Array(10)].map((_, i) => {
+              const value = (i + 1) * 4;
+              return (
+                <Select.Option key={value} value={value}>
+                  {value}
+                </Select.Option>
+              );
+            })}
+          </Select>
 
           <Button
             icon={<PrinterOutlined />}
@@ -176,12 +185,6 @@ const StickerModal = ({
 };
 
 export default StickerModal;
-
-
-
-
-
-
 
 // import React, { useRef } from "react";
 // import { Modal, Input, Button } from "antd";
@@ -201,7 +204,6 @@ export default StickerModal;
 //   editStates,
 // }) => {
 //   const previewRef = useRef(null);
-
 
 //   const generatePDFPreview = async () => {
 //     const input = previewRef.current;

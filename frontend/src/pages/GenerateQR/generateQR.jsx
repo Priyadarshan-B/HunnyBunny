@@ -180,7 +180,7 @@ export default function QRForm() {
                 type="default"
                 onClick={handleGenerateQR}
                 loading={loading ? { icon: <SyncOutlined spin /> } : false}
-                disabled={!isQRGenerated}
+                // disabled={!isQRGenerated}
               >
                 Generate QR
               </Button>
