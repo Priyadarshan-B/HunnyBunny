@@ -78,13 +78,7 @@ const StickerModal = ({
   };
 
   return (
-    <Modal
-      title="Print Sticker"
-      open={visible}
-      onCancel={onClose}
-      footer={null}
-      width={600}
-    >
+    <Modal title="Print Sticker" open={visible} onCancel={onClose} footer={null} width={600}>
       {product && (
         <>
           <div
@@ -109,17 +103,11 @@ const StickerModal = ({
                   alt="QR"
                   style={{ width: 50, height: 50 }}
                 />
-                <p style={{ fontWeight: "bold", fontSize: "10px" }}>
-                  {product.code}
-                </p>
+                <p style={{ fontWeight: "bold", fontSize: "10px" }}>{product.code}</p>
               </div>
               <div>
-                <p style={{ fontWeight: "bold", fontSize: "10px" }}>
-                  Hunny Bunny
-                </p>
-                <h4 style={{ fontWeight: "bold", fontSize: "10px" }}>
-                  {product.name.toUpperCase()}
-                </h4>
+                <p style={{ fontWeight: "bold", fontSize: "10px" }}>Hunny Bunny</p>
+                <h4 style={{ fontWeight: "bold", fontSize: "10px" }}>{product.name.toUpperCase()}</h4>
                 <div className="flex flex-row-reverse gap-4 mt-1">
                   <div className="flex-1 flex-col">
                     <p style={{ fontWeight: "600", fontSize: "9px" }}>
