@@ -22,7 +22,7 @@ const StickerModal = ({
 
     const stickerWidth = 50; // mm
     const stickerHeight = 25; // mm
-    const gapY = 2; // vertical gap between rows
+    const gapY = 4.5; // vertical gap between rows
     const stickersPerRow = 2;
 
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
