@@ -26,7 +26,7 @@ const { Text, Paragraph } = Typography;
 
 function TopBar(props) {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState({ name: "", email: "", role: "" });
+  const [userData, setUserData] = useState({ name: "", email: "", role: "", role_name:"" });
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [notificationModalVisible, setNotificationModalVisible] =
     useState(false);
@@ -40,6 +40,7 @@ function TopBar(props) {
           name: decoded.name || "User",
           email: decoded.email || "Not available",
           role: decoded.role || "Not available",
+          role_name:decoded.role_name || "Not available",
         });
       } catch (err) {
         console.error("Invalid token", err);
@@ -112,7 +113,7 @@ function TopBar(props) {
           />
         </Badge>
 
-        {userData.role === 2 && (
+        {userData.role_name === "Admin" && (
           <UserAddOutlined
             style={{ fontSize: 20, color: "#616773", cursor: "pointer" }}
             onClick={() => navigate("/register")}

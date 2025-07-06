@@ -35,7 +35,7 @@ function Dashboard(props) {
       }
     }
     fetchLocations();
-    fetchStats(); // Fetch total stats once
+    fetchStats(); 
   }, []);
 
   const fetchLocations = async () => {
@@ -57,28 +57,28 @@ function Dashboard(props) {
   }, [locations, jwtLocation, selectedLocation]);
 
   useEffect(() => {
-    fetchProducts(currentPage);
+    // fetchProducts(currentPage);
   }, [currentPage]);
 
-  const fetchProducts = async (page) => {
-    try {
-      setLoading(true);
-      const res = await requestApi("GET", `/products/qr_products?page=${page}&limit=${ITEMS_PER_PAGE}`);
-      const safeData = Array.isArray(res.data.data) ? res.data.data : [];
-      setProducts(safeData);
-      setTotalProducts(res.data.total || 0);
+  // const fetchProducts = async (page) => {
+  //   try {
+  //     setLoading(true);
+  //     const res = await requestApi("GET", `/products/qr_products?page=${page}&limit=${ITEMS_PER_PAGE}`);
+  //     const safeData = Array.isArray(res.data.data) ? res.data.data : [];
+  //     setProducts(safeData);
+  //     setTotalProducts(res.data.total || 0);
 
-      if (props.setLowStockProducts) {
-        const lowStocks = safeData.filter(p => Number(p.product_quantity) < 10);
-        props.setLowStockProducts(lowStocks);
-      }
-    } catch {
-      setProducts([]);
-      message.error("Failed to fetch products");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (props.setLowStockProducts) {
+  //       const lowStocks = safeData.filter(p => Number(p.product_quantity) < 10);
+  //       props.setLowStockProducts(lowStocks);
+  //     }
+  //   } catch {
+  //     setProducts([]);
+  //     message.error("Failed to fetch products");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const fetchStats = async () => {
     try {
@@ -95,7 +95,7 @@ function Dashboard(props) {
     }
   };
 
-  const topProducts = [...products].sort((a, b) => b.product_quantity - a.product_quantity).slice(0, 5);
+  // const topProducts = [...products].sort((a, b) => b.product_quantity - a.product_quantity).slice(0, 5);
 
   return (
     <div className="dashboard-container">
@@ -138,7 +138,7 @@ function Dashboard(props) {
             setDrawerOpen={setDrawerOpen}
           /> */}
 
-          <ProductDrawerChart
+          {/* <ProductDrawerChart
             drawerOpen={drawerOpen}
             setDrawerOpen={setDrawerOpen}
             paginatedProducts={products}
@@ -146,15 +146,10 @@ function Dashboard(props) {
             handlePrev={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             currentPage={currentPage - 1}
             totalProducts={totalProducts}
-          />
+          /> */}
 
           <div style={{ display: "flex", gap: "10px" }}>
             <ProductTable
-              products={products}
-              page={currentPage}
-              total={totalProducts}
-              pageSize={ITEMS_PER_PAGE}
-              onPageChange={(page) => setCurrentPage(page)}
             />
             <TodayProductSales />
           </div>

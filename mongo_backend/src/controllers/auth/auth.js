@@ -32,6 +32,7 @@ exports.post_login = async (req, res) => {
                 name: user.username,
                 email: user.email,
                 role: user.role?._id,
+                role_name: user.role?.role,
                 location: location,
                 lname: locationName
             },

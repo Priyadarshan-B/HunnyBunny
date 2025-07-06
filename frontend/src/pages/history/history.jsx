@@ -24,7 +24,6 @@ const History = () => {
   const [location, setLocation] = useState("");
   const [totalBills, setTotalBills] = useState(0);
 
-
   useEffect(() => {
     const token = localStorage.getItem("D!");
     if (token) {
@@ -48,31 +47,25 @@ const History = () => {
   useEffect(() => {
     if (!location) return;
 
-  const fetchBills = async () => {
-  try {
-    let url = `/bills/bill-details?page=${currentPage}&limit=5&location=${encodeURIComponent(location)}`;
-    if (debouncedSearch) {
-      url += `&name=${encodeURIComponent(debouncedSearch)}`;
-    }
+    const fetchBills = async () => {
+      try {
+        let url = `/bills/bill-details?page=${currentPage}&limit=${billsPerPage}&location=${encodeURIComponent(location)}`;
+        if (debouncedSearch) {
+          url += `&name=${encodeURIComponent(debouncedSearch)}`;
+        }
 
-    const response = await requestApi("GET", url);
-    setBills(response.data.data || []);
-    setTotalBills(response.data.total || 0);
-  } catch (error) {
-    console.error('Error fetching bills:', error);
-    setBills([]);
-    setTotalBills(0);
-  }
-};
-
+        const response = await requestApi("GET", url);
+        setBills(response.data.data || []);
+        setTotalBills(response.data.total || 0);
+      } catch (error) {
+        console.error('Error fetching bills:', error);
+        setBills([]);
+        setTotalBills(0);
+      }
+    };
 
     fetchBills();
-  }, [debouncedSearch, location]);
-
-  const indexOfLast = currentPage * billsPerPage;
-  const indexOfFirst = indexOfLast - billsPerPage;
-  const currentBills = bills.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(bills.length / billsPerPage);
+  }, [debouncedSearch, location, currentPage]);
 
   const renderItemsTable = (items = []) => {
     return (
@@ -135,7 +128,7 @@ const History = () => {
           accordion
           style={{ backgroundColor: "var(--background-1)" }}
         >
-          {currentBills.map((bill) => {
+          {bills.map((bill) => {
             const total = (bill.items || []).reduce(
               (sum, item) => sum + item.quantity * item.unit_price,
               0
@@ -148,7 +141,7 @@ const History = () => {
                       Bill #{bill.bill_number} - {bill.customer_name}
                     </Typography.Text>
                     <Typography.Text type="secondary">
-                      Payment: {bill.payment_method} | Date:{" "}
+                      Payment: {bill.payment_method} | Date: {" "}
                       {dayjs(bill.date).format("DD MMM YYYY, hh:mm A")}
                     </Typography.Text>
                     <Typography.Text strong>
@@ -166,11 +159,11 @@ const History = () => {
         </Collapse>
       )}
 
-      {bills.length > 0 && (
+      {totalBills > billsPerPage && (
         <Pagination
           style={{ marginTop: 20, textAlign: "center" }}
           current={currentPage}
-          total={bills.length}
+          total={totalBills}
           pageSize={billsPerPage}
           onChange={(page) => setCurrentPage(page)}
         />
