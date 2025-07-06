@@ -1,18 +1,40 @@
-import React, { useState } from "react";
-import { Table, Input, Typography, Pagination, Select, Empty } from "antd";
+import React, { useEffect, useState } from "react";
+import { Table, Input, Typography, Pagination, Select, Empty, message } from "antd";
+import requestApi from "../../components/utils/axios";
 
 const { Search } = Input;
 const { Title } = Typography;
 const { Option } = Select;
 
-function ProductTable({
-  products = [],
-  page,
-  total,
-  pageSize,
-  onPageChange
-}) {
+const ITEMS_PER_PAGE = 5;
+
+function ProductTable() {
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
+  const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchProducts(page, pageSize, searchTerm);
+  }, [page, pageSize, searchTerm]);
+
+  const fetchProducts = async (page, limit, search = "") => {
+    try {
+      setLoading(true);
+      const url = `/products/qr_products?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ""}`;
+      const res = await requestApi("GET", url);
+      const safeData = Array.isArray(res.data.data) ? res.data.data : [];
+      setProducts(safeData);
+      setTotal(res.data.total || 0);
+    } catch {
+      setProducts([]);
+      message.error("Failed to fetch products");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const columns = [
     {
@@ -48,7 +70,7 @@ function ProductTable({
           placeholder="Search by name or code"
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            onPageChange(1, pageSize); 
+            setPage(1);
           }}
           allowClear
           className="w-64"
@@ -60,6 +82,7 @@ function ProductTable({
         dataSource={products}
         rowKey={(record) => record._id || record.code}
         pagination={false}
+        loading={loading}
         locale={{
           emptyText: <Empty description="No Products data available" />,
         }}
@@ -70,7 +93,10 @@ function ProductTable({
           current={page}
           total={total}
           pageSize={pageSize}
-          onChange={(p, ps) => onPageChange(p, ps)}
+          onChange={(p, ps) => {
+            setPage(p);
+            setPageSize(ps);
+          }}
           showSizeChanger
           pageSizeOptions={["5", "10", "15", "25", "50"]}
         />
