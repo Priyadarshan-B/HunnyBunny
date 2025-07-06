@@ -12,9 +12,10 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import FormatListBulletedAddIcon from '@mui/icons-material/FormatListBulletedAdd';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
 
 function getIconComponent(iconPath, isActive) {
-    const iconColor = isActive ? '#ffffff' : '#616773';
+    const iconColor = isActive ? '#ffffff' : '#635bff';
     switch (iconPath) {
         case 'DashboardIcon':
             return <DashboardIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
@@ -28,6 +29,8 @@ function getIconComponent(iconPath, isActive) {
             return <FormatListBulletedAddIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         case 'ShoppingCartIcon':
             return <ShoppingCartIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
+        case 'HowToRegIcon':
+            return <HowToRegIcon style={{ color: iconColor }} className="custom-sidebar-icon" />;
         default:
             return null;
     }
@@ -150,7 +153,7 @@ function SideBar(props) {
                         <div style={{ marginTop: "2px", paddingLeft: "5px", fontSize: "14px", color: "var(--text)" }}>
                             <p><b>Email :</b> {userInfo?.email || "N/A"}</p>
                             <p><b>Role :</b> {userInfo?.role === 2 ? "Admin" : "User"}</p>
-                            <p><b>Location :</b> {userInfo?.lname || "N/A"}</p> 
+                            <p><b>Location :</b> {userInfo?.lname || "N/A"}</p>
                         </div>
                     </div>
                 )}
