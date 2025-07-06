@@ -3,6 +3,7 @@ node_modules/
 .env
 qr-codes/
 /dist
+/dist-electron
 /public
 /public/qr-codes
 public/qr-codes/*

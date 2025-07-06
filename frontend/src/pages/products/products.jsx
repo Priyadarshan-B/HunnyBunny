@@ -20,14 +20,14 @@ const Products = () => {
   const [editStates, setEditStates] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [stickerCount, setStickerCount] = useState(1);
+  const [stickerCount, setStickerCount] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [currentEditState, setCurrentEditState] = useState({});
   const [displayLocation, setDisplayLocation] = useState("");
 
-  const LIMIT = 10;
+  const LIMIT = 50;
 
   useEffect(() => {
     const token = localStorage.getItem("D!");
