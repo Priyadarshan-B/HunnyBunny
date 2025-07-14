@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Modal, Input, Button } from "antd";
 import { PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -15,22 +15,29 @@ const StickerModal = ({
   editStates,
 }) => {
   const previewRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   const generatePDFPreview = async () => {
     const input = previewRef.current;
     if (!input) return;
 
-    const stickerWidth = 50; // mm
-    const stickerHeight = 25; // mm
-    const gapY = 4; // vertical gap between rows
-    const stickersPerRow = 2;
+    setLoading(true);
 
+    const inchToPx = 96;
+    const stickerWidth = 2 * inchToPx;   // 192px
+    const stickerHeight = 1 * inchToPx;  // 96px
+    const gap = 0.25 * inchToPx;         // 24px
+
+    const stickersPerRow = 2;
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
-    const pageWidth = stickerWidth * stickersPerRow; // 100mm
-    const pageHeight = totalRows * stickerHeight + (totalRows - 1) * gapY;
+
+    // Dynamic page width: ensure at least one row's worth of space
+    const pageWidth = stickerCount >= stickersPerRow ? gap + (stickersPerRow * stickerWidth) + (stickersPerRow - 1) * gap + gap : gap + stickerWidth + gap;
+    // Dynamic page height: ensure at least one sticker's height plus margins
+    const pageHeight = gap + (totalRows * stickerHeight) + ((totalRows - 1) * gap) + gap;
 
     const pdf = new jsPDF({
-      unit: "mm",
+      unit: "px",
       format: [pageWidth, pageHeight],
     });
 
@@ -38,25 +45,25 @@ const StickerModal = ({
     hiddenContainer.style.position = "absolute";
     hiddenContainer.style.top = "-9999px";
     hiddenContainer.style.left = "0";
-    hiddenContainer.style.width = `${stickerWidth}mm`;
-    hiddenContainer.style.height = `${stickerHeight}mm`;
+    hiddenContainer.style.zIndex = "-1";
     document.body.appendChild(hiddenContainer);
 
     for (let i = 0; i < stickerCount; i++) {
       const clone = input.cloneNode(true);
-      clone.style.margin = "0";
-      clone.style.padding = "0";
-      clone.style.width = "189px"; // for consistent render
-      clone.style.height = "94px";
+      clone.style.margin = 0;
+      clone.style.padding = 0;
+      clone.style.width = `${stickerWidth}px`;
+      clone.style.height = `${stickerHeight}px`;
       clone.style.boxSizing = "border-box";
       clone.style.border = "none";
+      clone.style.background = "#fff";
 
       hiddenContainer.appendChild(clone);
-      await new Promise((res) => setTimeout(res, 50)); // allow DOM update
+      await new Promise((res) => setTimeout(res, 30));
 
       const canvas = await html2canvas(clone, {
         useCORS: true,
-        scale: 2,
+        scale: 3,
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -64,16 +71,16 @@ const StickerModal = ({
       const row = Math.floor(i / stickersPerRow);
       const col = i % stickersPerRow;
 
-      const x = col * stickerWidth;
-      const y = row * (stickerHeight + gapY);
+      const x = gap + col * (stickerWidth + gap);
+      const y = gap + row * (stickerHeight + gap);
 
       pdf.addImage(imgData, "PNG", x, y, stickerWidth, stickerHeight);
-
       hiddenContainer.removeChild(clone);
     }
 
     document.body.removeChild(hiddenContainer);
-    pdf.output("dataurlnewwindow");
+    pdf.save(`${product.code}_stickers.pdf`);
+    setLoading(false);
   };
 
   return (
@@ -83,15 +90,16 @@ const StickerModal = ({
           <div
             ref={previewRef}
             style={{
-              width: 189,
-              height: 94,
-              padding: 7,
+              width: 192,
+              height: 96,
+              padding: 10,
               textAlign: "center",
               border: "1px solid lightgray",
-              margin: 0,
+              margin: 24,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              background: "#fff",
             }}
           >
             <div className="flex flex-row gap-2 justify-center items-center">
@@ -137,7 +145,7 @@ const StickerModal = ({
 
           <Input
             type="number"
-            min={2}
+            min={1}
             value={stickerCount}
             onChange={(e) => setStickerCount(Number(e.target.value))}
             placeholder="Enter number of stickers"
@@ -147,9 +155,11 @@ const StickerModal = ({
             icon={<PrinterOutlined />}
             type="primary"
             onClick={generatePDFPreview}
+            loading={loading}
+            disabled={loading}
             style={{ marginTop: 16, width: "100%" }}
           >
-            Print Preview
+            {loading ? "Generating..." : "Print Preview"}
           </Button>
         </>
       )}
