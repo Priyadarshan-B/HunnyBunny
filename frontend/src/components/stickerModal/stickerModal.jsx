@@ -24,17 +24,26 @@ const StickerModal = ({
     setLoading(true);
 
     const inchToPx = 96;
-    const stickerWidth = 2 * inchToPx;   // 192px
-    const stickerHeight = 1 * inchToPx;  // 96px
-    const gap = 0.25 * inchToPx;         // 24px
+    const stickerWidth = 2 * inchToPx; // 192px
+    const stickerHeight = 1 * inchToPx; // 96px
+    const gap = 0.25 * inchToPx; // 24px
+    const rowMargin = 12; // 5px margin below each row
 
     const stickersPerRow = 2;
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
 
     // Dynamic page width: ensure at least one row's worth of space
-    const pageWidth = stickerCount >= stickersPerRow ? gap + (stickersPerRow * stickerWidth) + (stickersPerRow - 1) * gap + gap : gap + stickerWidth + gap;
+    const pageWidth =
+      stickerCount >= stickersPerRow
+        ? gap + stickersPerRow * stickerWidth + (stickersPerRow - 1) * gap + gap
+        : gap + stickerWidth + gap;
     // Dynamic page height: ensure at least one sticker's height plus margins
-    const pageHeight = gap + (totalRows * stickerHeight) + ((totalRows - 1) * gap) + gap;
+    const pageHeight =
+      gap +
+      totalRows * stickerHeight +
+      (totalRows - 1) * gap +
+      (totalRows - 1) * rowMargin +
+      gap;
 
     const pdf = new jsPDF({
       unit: "px",
@@ -55,7 +64,7 @@ const StickerModal = ({
       clone.style.width = `${stickerWidth}px`;
       clone.style.height = `${stickerHeight}px`;
       clone.style.boxSizing = "border-box";
-      clone.style.border = "none";
+      // clone.style.border = "1px solid #000"
       clone.style.background = "#fff";
 
       hiddenContainer.appendChild(clone);
@@ -72,7 +81,7 @@ const StickerModal = ({
       const col = i % stickersPerRow;
 
       const x = gap + col * (stickerWidth + gap);
-      const y = gap + row * (stickerHeight + gap);
+      const y = gap + 13 + row * (stickerHeight + gap + rowMargin); // 13px gap at top of PDF
 
       pdf.addImage(imgData, "PNG", x, y, stickerWidth, stickerHeight);
       hiddenContainer.removeChild(clone);
@@ -84,7 +93,13 @@ const StickerModal = ({
   };
 
   return (
-    <Modal title="Print Sticker" open={visible} onCancel={onClose} footer={null} width={600}>
+    <Modal
+      title="Print Sticker"
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      width={600}
+    >
       {product && (
         <>
           <div
@@ -94,7 +109,7 @@ const StickerModal = ({
               height: 96,
               padding: 10,
               textAlign: "center",
-              border: "1px solid lightgray",
+              // border: "1px solid lightgray",
               margin: 24,
               display: "flex",
               alignItems: "center",
@@ -110,11 +125,17 @@ const StickerModal = ({
                   alt="QR"
                   style={{ width: 50, height: 50 }}
                 />
-                <p style={{ fontWeight: "bold", fontSize: "10px" }}>{product.code}</p>
+                <p style={{ fontWeight: "bold", fontSize: "10px" }}>
+                  {product.code}
+                </p>
               </div>
               <div>
-                <p style={{ fontWeight: "bold", fontSize: "10px" }}>Hunny Bunny</p>
-                <h4 style={{ fontWeight: "bold", fontSize: "10px" }}>{product.name.toUpperCase()}</h4>
+                <p style={{ fontWeight: "bold", fontSize: "10px" }}>
+                  Hunny Bunny
+                </p>
+                <h4 style={{ fontWeight: "bold", fontSize: "10px" }}>
+                  {product.name.toUpperCase()}
+                </h4>
                 <div className="flex flex-row-reverse gap-4 mt-1">
                   <div className="flex-1 flex-col">
                     <p style={{ fontWeight: "600", fontSize: "9px" }}>
@@ -128,13 +149,19 @@ const StickerModal = ({
                     <p style={{ fontWeight: "400", fontSize: "8px" }}>
                       pkd:{" "}
                       {editStates[product.id]?.pkd
-                        ? dayjs(editStates[product.id].pkd, "DD-MM-YYYY").format("DD-MM-YYYY")
+                        ? dayjs(
+                            editStates[product.id].pkd,
+                            "DD-MM-YYYY"
+                          ).format("DD-MM-YYYY")
                         : "--"}
                     </p>
                     <p style={{ fontWeight: "400", fontSize: "8px" }}>
                       exp:{" "}
                       {editStates[product.id]?.exp
-                        ? dayjs(editStates[product.id].exp, "DD-MM-YYYY").format("DD-MM-YYYY")
+                        ? dayjs(
+                            editStates[product.id].exp,
+                            "DD-MM-YYYY"
+                          ).format("DD-MM-YYYY")
                         : "--"}
                     </p>
                   </div>
@@ -151,6 +178,7 @@ const StickerModal = ({
             placeholder="Enter number of stickers"
             style={{ marginTop: 16 }}
           />
+
           <Button
             icon={<PrinterOutlined />}
             type="primary"
@@ -168,3 +196,5 @@ const StickerModal = ({
 };
 
 export default StickerModal;
+
+// 5px marigin

@@ -26,7 +26,7 @@ const QRScanner = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState("");
-  const [customerName, setCustomerName] = useState("");
+  const [customerName, setCustomerName] = useState("--");
   const [paymentMethod, setPaymentMethod] = useState("UPI");
   const [userLocation, setUserLocation] = useState("");
   const [isSaving, setIsSaving] = useState(false);

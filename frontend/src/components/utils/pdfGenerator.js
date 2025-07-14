@@ -23,6 +23,10 @@ const generatePDF = (products, totalAmount, customerName) => {
   doc.setFont("Courier", "bold");
   doc.setFontSize(11); // reduced from 13
   doc.text("HUNNY BUNNY", centerX, y, { align: "center" });
+  doc.setFontSize(9);
+  y += 10;
+  doc.text("CAKES & SWEETS", centerX, y, { align: "center" });
+
   y += 13;
 
   doc.setFontSize(8); // reduced from 9
@@ -41,7 +45,7 @@ const generatePDF = (products, totalAmount, customerName) => {
 
   const date = new Date();
   doc.text(`Date: ${date.toLocaleDateString()}`, startX, y);
-  doc.text(`Time: ${date.toLocaleTimeString()}`, startX + 80, y); // moved closer
+  doc.text(`Time: ${date.toLocaleTimeString()}`, startX + 80, y);
   y += 10;
   doc.text("------------------------------------------", centerX, y, {
     align: "center",
@@ -49,18 +53,36 @@ const generatePDF = (products, totalAmount, customerName) => {
   y += 10;
 
   doc.setFont("Courier", "bold");
-  doc.text("Particulars   Qty  Rate  Amount", startX, y); // shorter columns
+  doc.text("Particulars    Qty    Rate    Amount", startX, y);
   y += 9;
   doc.setFont("Courier", "normal");
 
+  // Column positions
+  const nameColWidth = 60; // width for product name
+  const qtyColX = startX + 80;
+  const rateColX = startX + 130;
+  const amountColX = startX + 170;
+
   products.forEach((p) => {
-    const name =
-      p.name.length > 9 ? p.name.substring(0, 9) : p.name.padEnd(9, " ");
-    const qty = p.quantity.toString().padStart(3, " ");
-    const rate = p.price.toFixed(2).padStart(6, " ");
-    const amount = (p.price * p.quantity).toFixed(2).padStart(7, " ");
-    doc.text(`${name} ${qty} ${rate} ${amount}`, startX, y);
-    y += 10;
+    // Wrap the product name
+    const nameLines = doc.splitTextToSize(p.name, nameColWidth);
+
+    // Prepare other columns
+    const qty = p.quantity.toString();
+    const rate = p.price.toFixed(2);
+    const amount = (p.price * p.quantity).toFixed(2);
+
+    // Print each line
+    nameLines.forEach((line, idx) => {
+      doc.text(line, startX, y);
+      if (idx === 0) {
+        // Only print qty, rate, amount on the first line
+        doc.text(qty, qtyColX, y, { align: "right" });
+        doc.text(rate, rateColX, y, { align: "right" });
+        doc.text(amount, amountColX, y, { align: "right" });
+      }
+      y += 10;
+    });
   });
 
   y += 4;
@@ -73,7 +95,9 @@ const generatePDF = (products, totalAmount, customerName) => {
 
   doc.text("Round off : 0.00", startX, y);
   y += 10;
-  doc.text("---------------------------------------", centerX, y, { align: "center" });
+  doc.text("---------------------------------------", centerX, y, {
+    align: "center",
+  });
   y += 10;
 
   doc.text("N E T   A M O U N T", centerX, y, { align: "center" });
@@ -97,11 +121,13 @@ const generatePDF = (products, totalAmount, customerName) => {
   y += 10;
 
   doc.setFont("Courier", "normal");
-  doc.text("-------------------------------------------", centerX, y, { align: "center" });
+  doc.text("-------------------------------------------", centerX, y, {
+    align: "center",
+  });
   y += 12;
 
   doc.setFont("Courier", "normal");
-  doc.setFontSize(7);
+  doc.setFontSize(6);
   doc.text("UNIT OF SRI SAKTHI BAKERY, SWEETS & SNACKS", centerX, y, {
     align: "center",
   });
