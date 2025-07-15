@@ -27,14 +27,15 @@ const StickerModal = ({
     const stickerWidth = 2 * inchToPx;   // 192px
     const stickerHeight = 1 * inchToPx;  // 96px
     const gap = 0.25 * inchToPx;         // 24px
+    const rowMargin = 5; // 5px margin below each row
 
     const stickersPerRow = 2;
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
 
     // Dynamic page width: ensure at least one row's worth of space
     const pageWidth = stickerCount >= stickersPerRow ? gap + (stickersPerRow * stickerWidth) + (stickersPerRow - 1) * gap + gap : gap + stickerWidth + gap;
-    // Dynamic page height: ensure at least one sticker's height plus margins
-    const pageHeight = gap + (totalRows * stickerHeight) + ((totalRows - 1) * gap) + gap;
+    // Dynamic page height: ensure at least one sticker's height plus margins (no top margin)
+    const pageHeight = (totalRows * stickerHeight) + ((totalRows - 1) * gap) + ((totalRows - 1) * rowMargin) + gap;
 
     const pdf = new jsPDF({
       unit: "px",
@@ -55,7 +56,7 @@ const StickerModal = ({
       clone.style.width = `${stickerWidth}px`;
       clone.style.height = `${stickerHeight}px`;
       clone.style.boxSizing = "border-box";
-      clone.style.border = "none";
+      clone.style.border = "1px solid #000";
       clone.style.background = "#fff";
 
       hiddenContainer.appendChild(clone);
@@ -72,7 +73,7 @@ const StickerModal = ({
       const col = i % stickersPerRow;
 
       const x = gap + col * (stickerWidth + gap);
-      const y = gap + row * (stickerHeight + gap);
+      const y = row * (stickerHeight + gap + rowMargin);
 
       pdf.addImage(imgData, "PNG", x, y, stickerWidth, stickerHeight);
       hiddenContainer.removeChild(clone);
