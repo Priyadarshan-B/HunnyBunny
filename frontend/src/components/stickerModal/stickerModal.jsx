@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Modal, Input, Button } from "antd";
+import { Modal, Input, Button, Select } from "antd";
 import { PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
@@ -32,12 +32,10 @@ const StickerModal = ({
     const stickersPerRow = 2;
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
 
-    // Dynamic page width: ensure at least one row's worth of space
     const pageWidth =
       stickerCount >= stickersPerRow
         ? gap + stickersPerRow * stickerWidth + (stickersPerRow - 1) * gap + gap
         : gap + stickerWidth + gap;
-    // Dynamic page height: ensure at least one sticker's height plus margins
     const pageHeight =
       gap +
       totalRows * stickerHeight +
@@ -170,13 +168,16 @@ const StickerModal = ({
             </div>
           </div>
 
-          <Input
-            type="number"
-            min={1}
+          {/* Replace Input with Select for sticker count */}
+          <Select
             value={stickerCount}
-            onChange={(e) => setStickerCount(Number(e.target.value))}
-            placeholder="Enter number of stickers"
-            style={{ marginTop: 16 }}
+            onChange={setStickerCount}
+            style={{ marginTop: 16, width: "100%" }}
+            options={Array.from({ length: 10 }, (_, i) => {
+              const value = (i + 1) * 4;
+              return { value, label: value };
+            })}
+            placeholder="Select number of stickers"
           />
 
           <Button
@@ -196,5 +197,3 @@ const StickerModal = ({
 };
 
 export default StickerModal;
-
-// 5px marigin

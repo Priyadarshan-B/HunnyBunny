@@ -3,7 +3,6 @@ const path = require("path");
 const QRProduct = require("../../models/QRProduct");
 const mongoose = require("mongoose");
 
-
 exports.post_qr_products = async (req, res) => {
   try {
     const { product_id, name, price, quantity, location } = req.body;
@@ -16,7 +15,8 @@ exports.post_qr_products = async (req, res) => {
     let qr_Path = "";
     if (qrImage) {
       const uploadDir = path.join(__dirname, "../../public/qr-codes");
-      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+      if (!fs.existsSync(uploadDir))
+        fs.mkdirSync(uploadDir, { recursive: true });
 
       const fileName = `${product_id}.png`;
       const filePath = path.join(uploadDir, fileName);
@@ -31,13 +31,17 @@ exports.post_qr_products = async (req, res) => {
       const finalQRCode =
         existing.qr_code?.trim() !== "" ? existing.qr_code : qr_Path;
 
-      existing.product_price = mongoose.Types.Decimal128.fromString(price.toString());
+      existing.product_price = mongoose.Types.Decimal128.fromString(
+        price.toString()
+      );
       existing.product_quantity += parseInt(quantity);
       existing.qr_code = finalQRCode;
 
       await existing.save();
 
-      return res.status(200).json({ message: "Matching product updated successfully" });
+      return res
+        .status(200)
+        .json({ message: "Matching product updated successfully" });
     } else {
       const newProduct = new QRProduct({
         product_code: product_id,
@@ -51,7 +55,9 @@ exports.post_qr_products = async (req, res) => {
 
       await newProduct.save();
 
-      return res.status(200).json({ message: "New product inserted successfully" });
+      return res
+        .status(200)
+        .json({ message: "New product inserted successfully" });
     }
   } catch (error) {
     console.error("Error processing QR product:", error);
@@ -66,7 +72,6 @@ exports.post_qr_products = async (req, res) => {
     return res.status(500).json({ error: "Failed to process QR product" });
   }
 };
-
 
 exports.get_qr_products = async (req, res) => {
   try {
@@ -84,7 +89,9 @@ exports.get_qr_products = async (req, res) => {
 
     let query = QRProduct.find(filter)
       .populate("location", "location")
-      .select("_id product_code product_name product_price product_quantity qr_code location");
+      .select(
+        "_id product_code product_name product_price product_quantity qr_code location"
+      );
 
     const countPromise = QRProduct.countDocuments(filter);
 
@@ -127,7 +134,6 @@ exports.get_qr_products = async (req, res) => {
   }
 };
 
-
 exports.get_product_by_code = async (req, res) => {
   try {
     const { code, location } = req.body;
@@ -168,7 +174,7 @@ exports.delete_qr_product = async (req, res) => {
     }
 
     const product = await QRProduct.findById(product_id);
-    console.log(product)
+    console.log(product);
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -186,5 +192,33 @@ exports.delete_qr_product = async (req, res) => {
   } catch (error) {
     console.error("Error deleting product:", error);
     return res.status(500).json({ error: "Failed to delete product" });
+  }
+};
+
+exports.update_qr_product = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, quantity, location } = req.body;
+    if (!id) {
+      return res.status(400).json({ error: "Product ID is required" });
+    }
+    const update = {};
+    if (name) update.product_name = name;
+    if (price)
+      update.product_price = mongoose.Types.Decimal128.fromString(
+        price.toString()
+      );
+    if (quantity !== undefined) update.product_quantity = quantity;
+    if (location) update.location = location;
+    const updated = await QRProduct.findByIdAndUpdate(id, update, {
+      new: true,
+    });
+    if (!updated) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ error: "Failed to update product" });
   }
 };
