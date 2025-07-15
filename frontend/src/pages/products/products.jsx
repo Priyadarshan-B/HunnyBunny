@@ -48,12 +48,16 @@ const Products = () => {
       setProductsLoading(true);
       const res = await requestApi(
         "GET",
-        `/products/qr_products?term=${encodeURIComponent(term)}&page=${page}&limit=${LIMIT}`
+        `/products/qr_products?term=${encodeURIComponent(
+          term
+        )}&page=${page}&limit=${LIMIT}`
       );
 
       const newProducts = res.data?.data || [];
 
-      setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
+      setProducts((prev) =>
+        page === 1 ? newProducts : [...prev, ...newProducts]
+      );
 
       const newEditStates = {};
       newProducts.forEach((prod) => {
@@ -64,7 +68,9 @@ const Products = () => {
           editing: false,
         };
       });
-      setEditStates((prev) => (page === 1 ? newEditStates : { ...prev, ...newEditStates }));
+      setEditStates((prev) =>
+        page === 1 ? newEditStates : { ...prev, ...newEditStates }
+      );
 
       const total = res.data?.total || 0;
       const loaded = page * LIMIT;
@@ -90,23 +96,21 @@ const Products = () => {
       console.error("Failed to fetch quantities:", error);
     }
   };
- const deleteProduct = async (id) => {
-  try {
-    const res = await requestApi("DELETE",`/products/qr_products/${id}`);
+  const deleteProduct = async (id) => {
+    try {
+      const res = await requestApi("DELETE", `/products/qr_products/${id}`);
 
-    if (res.status === 200) {
-      showSuccess("Product Deleted");
-      fetchProducts();
-    } else {
-      showError("Failed to Delete Products")
+      if (res.status === 200) {
+        showSuccess("Product Deleted");
+        fetchProducts();
+      } else {
+        showError("Failed to Delete Products");
+      }
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      showError("Failed to Delete Products");
     }
-  } catch (error) {
-    console.error("Failed to delete product:", error);
-      showError("Failed to Delete Products")
-
-  }
-};
-
+  };
 
   useEffect(() => {
     setProducts([]);
@@ -167,24 +171,22 @@ const Products = () => {
       ...prev,
       [id]: { qty: null, pkd: null, exp: null, editing: false },
     }));
-    const handleDeleteProduct = async (id) => {
-  try {
-    await deleteProduct(id);
-    message.success("Product deleted successfully");
+  const handleDeleteProduct = async (id) => {
+    try {
+      await deleteProduct(id);
+      message.success("Product deleted successfully");
 
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+      setProducts((prev) => prev.filter((p) => p.id !== id));
 
-    setEditStates((prev) => {
-      const newState = { ...prev };
-      delete newState[id];
-      return newState;
-    });
-  } catch (error) {
-    message.error("Failed to delete product");
-  }
-};
-
-
+      setEditStates((prev) => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+    } catch (error) {
+      message.error("Failed to delete product");
+    }
+  };
 
   const handleQtyChange = (id, value) => {
     setEditStates((prev) => ({
@@ -203,31 +205,37 @@ const Products = () => {
   const openStickerModal = (product) => {
     setSelectedProduct(product);
     setModalVisible(true);
-    setStickerCount(1);
+    setStickerCount(4);
   };
 
- useEffect(() => {
-  const scrollContainer = document.getElementById("app-body"); 
+  useEffect(() => {
+    const scrollContainer = document.getElementById("app-body");
 
-  if (!scrollContainer) return;
+    if (!scrollContainer) return;
 
-  const handleScroll = () => {
-    const nearBottom =
-      scrollContainer.scrollTop + scrollContainer.clientHeight + 300 >= scrollContainer.scrollHeight;
+    const handleScroll = () => {
+      const nearBottom =
+        scrollContainer.scrollTop + scrollContainer.clientHeight + 300 >=
+        scrollContainer.scrollHeight;
 
-    if (nearBottom && hasMore && !productsLoading) {
-      fetchProducts(currentPage + 1, searchTerm);
-    }
-  };
+      if (nearBottom && hasMore && !productsLoading) {
+        fetchProducts(currentPage + 1, searchTerm);
+      }
+    };
 
-  scrollContainer.addEventListener("scroll", handleScroll);
-  return () => scrollContainer.removeEventListener("scroll", handleScroll);
-}, [currentPage, hasMore, productsLoading, searchTerm]);
-
+    scrollContainer.addEventListener("scroll", handleScroll);
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, [currentPage, hasMore, productsLoading, searchTerm]);
 
   return (
     <div>
-      <div style={{ marginBottom: "10px", color: "var(--text)", fontWeight: "bold" }}>
+      <div
+        style={{
+          marginBottom: "10px",
+          color: "var(--text)",
+          fontWeight: "bold",
+        }}
+      >
         Location: {displayLocation}
       </div>
 
@@ -245,7 +253,9 @@ const Products = () => {
                 borderRadius: 8,
               }}
             >
-              <Skeleton.Image style={{ width: 150, height: 150, marginBottom: 12 }} />
+              <Skeleton.Image
+                style={{ width: 150, height: 150, marginBottom: 12 }}
+              />
               <Skeleton active title paragraph={{ rows: 2 }} />
             </div>
           ))
@@ -260,7 +270,7 @@ const Products = () => {
               handleSave={handleModalSave}
               handleCancel={handleCancel}
               handleDelete={handleDelete}
-              handleDeleteProduct= {handleDeleteProduct}
+              handleDeleteProduct={handleDeleteProduct}
               handleQtyChange={handleQtyChange}
               handleDateChange={handleDateChange}
               openStickerModal={openStickerModal}
@@ -294,6 +304,7 @@ const Products = () => {
         editState={currentEditState}
         setEditState={setCurrentEditState}
         quantityOptions={quantity}
+        refreshProducts={() => fetchProducts(1, searchTerm)}
       />
     </div>
   );

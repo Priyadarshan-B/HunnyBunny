@@ -1,6 +1,7 @@
-const User = require('../../models/User')
-const Role = require('../../models/Role')
-const Attendance = require('../../models/Attendance')
+const User = require("../../models/User");
+const Role = require("../../models/Role");
+const Attendance = require("../../models/Attendance");
+const Contact = require("../../models/Contact");
 
 exports.get_users = async (req, res) => {
   try {
@@ -12,12 +13,8 @@ exports.get_users = async (req, res) => {
     const normalizedDate = new Date(date);
     normalizedDate.setHours(0, 0, 0, 0);
 
-    const adminRole = await Role.findOne({ name: "Admin" });
-
-    const staffUsers = await User.find({
-      role: { $ne: adminRole?._id },
-      status: "1",
-    }).select("_id username email");
+    // Fetch all contacts
+    const contacts = await Contact.find({});
 
     const attendanceRecords = await Attendance.find({
       date: normalizedDate,
@@ -25,15 +22,21 @@ exports.get_users = async (req, res) => {
 
     const attendanceMap = {};
     attendanceRecords.forEach((a) => {
-      attendanceMap[a.userId.toString()] = a.status;
+      attendanceMap[a.userId.toString()] = a;
     });
 
-    const usersWithStatus = staffUsers.map((user) => ({
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      status: attendanceMap[user._id.toString()] || "Absent", // Default to Absent
-    }));
+    const usersWithStatus = contacts.map((contact) => {
+      const attendance = attendanceMap[contact._id.toString()];
+      return {
+        _id: contact._id,
+        name: contact.name,
+        contact: contact.contact,
+        location: contact.location,
+        status: attendance?.status || "Absent",
+        inTime: attendance?.inTime ? attendance.inTime : "--",
+        outTime: attendance?.outTime ? attendance.outTime : "--",
+      };
+    });
 
     res.json(usersWithStatus);
   } catch (err) {
@@ -42,58 +45,126 @@ exports.get_users = async (req, res) => {
   }
 };
 
-
-
-exports.post_attendance = async(req, res)=>{
-     const { userId, date, status } = req.body;
+exports.post_attendance = async (req, res) => {
+  const { userId, date, status, inTime, outTime } = req.body;
   try {
-    const normalizedDate = new Date(date).setHours(0, 0, 0, 0);
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
 
+    let update = {};
+    if (status) update.status = status;
+    if (inTime) update.inTime = inTime;
+    if (outTime) update.outTime = outTime;
+
+    // If only outTime is provided, update only if record exists
+    if (outTime && !inTime && !status) {
+      const attendance = await Attendance.findOneAndUpdate(
+        { userId, date: normalizedDate },
+        { $set: { outTime } },
+        { new: true }
+      );
+      if (!attendance) {
+        return res
+          .status(404)
+          .json({ error: "Attendance record not found for outTime update" });
+      }
+      return res.json(attendance);
+    }
+
+    // Otherwise, upsert (create or update)
     const attendance = await Attendance.findOneAndUpdate(
       { userId, date: normalizedDate },
-      { status },
+      { $set: update },
       { upsert: true, new: true }
     );
 
     res.json(attendance);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to save attendance' });
+    res.status(500).json({ error: "Failed to save attendance" });
   }
-}
+};
 
-exports.get_attendance = async(req,res)=>{
-    const { date } = req.query;
-  if (!date) return res.status(400).json({ error: 'Date is required' });
+exports.update_attendance = async (req, res) => {
+  const { userId, date, inTime, outTime } = req.body;
+  try {
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
+
+    const update = {};
+    if (inTime) update.inTime = inTime;
+    if (outTime) update.outTime = outTime;
+
+    const attendance = await Attendance.findOneAndUpdate(
+      { userId, date: normalizedDate },
+      { $set: update },
+      { new: true }
+    );
+    if (!attendance) {
+      return res.status(404).json({ error: "Attendance record not found" });
+    }
+    res.json(attendance);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update attendance times" });
+  }
+};
+
+exports.get_attendance = async (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ error: "Date is required" });
 
   try {
-    const normalizedDate = new Date(date).setHours(0, 0, 0, 0);
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
 
-    const adminRole = await Role.findOne({ name: 'Admin' });
-
-    const users = await User.find({
-      role: { $ne: adminRole?._id },
-      status: '1'
-    }).select('_id username email');
-
-    const attendanceRecords = await Attendance.find({
-      date: normalizedDate
-    });
-
+    // Fetch all contacts
+    const contacts = await Contact.find({});
+    const attendanceRecords = await Attendance.find({ date: normalizedDate });
     const attendanceMap = {};
-    attendanceRecords.forEach(a => {
-      attendanceMap[a.userId.toString()] = a.status;
+    attendanceRecords.forEach((a) => {
+      attendanceMap[a.userId.toString()] = a;
     });
 
-    const result = users.map(user => ({
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      status: attendanceMap[user._id.toString()] || 'Absent'
-    }));
+    const result = contacts.map((contact) => {
+      const attendance = attendanceMap[contact._id.toString()];
+      return {
+        _id: contact._id,
+        name: contact.name,
+        contact: contact.contact,
+        location: contact.location,
+        status: attendance?.status || "Absent",
+        inTime: attendance?.inTime ? attendance.inTime : "--",
+        outTime: attendance?.outTime ? attendance.outTime : "--",
+      };
+    });
 
     res.json(result);
   } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'Failed to fetch daily attendance' });
+    console.error("Error:", err);
+    res.status(500).json({ error: "Failed to fetch daily attendance" });
   }
-}
+};
+
+exports.create_contact = async (req, res) => {
+  try {
+    const { name, contact, location } = req.body;
+    if (!name || !contact || !location) {
+      return res
+        .status(400)
+        .json({ error: "Name, contact, and location are required" });
+    }
+    // Validate location exists
+    const Location = require("../../models/Location");
+    const locationDoc = await Location.findById(location);
+    if (!locationDoc) {
+      return res.status(400).json({ error: "Invalid location" });
+    }
+    const Contact = require("../../models/Contact");
+    const newContact = new Contact({ name, contact, location });
+    await newContact.save();
+    res.status(201).json(newContact);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to create contact", details: err.message });
+  }
+};

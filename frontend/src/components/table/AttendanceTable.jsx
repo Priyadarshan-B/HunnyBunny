@@ -1,6 +1,7 @@
 import { Table, Tag, Input } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import debounce from "lodash/debounce";
+import dayjs from "dayjs";
 
 const AttendanceTable = ({ data }) => {
   const [search, setSearch] = useState("");
@@ -11,8 +12,10 @@ const AttendanceTable = ({ data }) => {
       setFilteredData(data);
     } else {
       const lower = search.toLowerCase();
-      const filtered = data.filter((item) =>
-        item.username.toLowerCase().includes(lower)
+      const filtered = data.filter(
+        (item) =>
+          (item.name || "").toLowerCase().includes(lower) ||
+          (item.contact || "").toLowerCase().includes(lower)
       );
       setFilteredData(filtered);
     }
@@ -29,13 +32,13 @@ const AttendanceTable = ({ data }) => {
   const columns = [
     {
       title: "Name",
-      dataIndex: "username",
-      key: "username",
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
+      title: "Contact",
+      dataIndex: "contact",
+      key: "contact",
     },
     {
       title: "Status",
@@ -45,12 +48,26 @@ const AttendanceTable = ({ data }) => {
         <Tag color={status === "Present" ? "green" : "red"}>{status}</Tag>
       ),
     },
+    {
+      title: "In Time",
+      dataIndex: "inTime",
+      key: "inTime",
+      render: (inTime) =>
+        inTime && inTime !== "--" ? dayjs(inTime).format("HH:mm") : "--",
+    },
+    {
+      title: "Out Time",
+      dataIndex: "outTime",
+      key: "outTime",
+      render: (outTime) =>
+        outTime && outTime !== "--" ? dayjs(outTime).format("HH:mm") : "--",
+    },
   ];
 
   return (
     <div className="flex flex-col gap-4">
       <Input
-        placeholder="Search by name"
+        placeholder="Search by name or contact"
         onChange={(e) => handleSearch(e.target.value)}
         allowClear
         style={{ width: 250 }}
