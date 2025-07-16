@@ -9,6 +9,7 @@ import {
   Form,
   TimePicker,
   Space,
+  Popconfirm,
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +17,12 @@ import requestApi from "../../components/utils/axios";
 import dayjs from "dayjs";
 import debounce from "lodash/debounce";
 import { showError, showSuccess } from "../toast/toast";
-import { UserAddOutlined, EditOutlined, SaveOutlined } from "@ant-design/icons";
+import {
+  UserAddOutlined,
+  EditOutlined,
+  SaveOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import AddUserModal from "./AddUserModal";
 
 const AttendanceForm = () => {
@@ -32,6 +38,10 @@ const AttendanceForm = () => {
   const [editingTimes, setEditingTimes] = useState({});
   const [editingRow, setEditingRow] = useState(null);
   const navigate = useNavigate();
+  const [editUserModal, setEditUserModal] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
+  const [editUserForm] = Form.useForm();
+  const [editUserLoading, setEditUserLoading] = useState(false);
 
   useEffect(() => {
     fetchUsersByDate(date);
@@ -146,6 +156,53 @@ const AttendanceForm = () => {
     }
   };
 
+  // User update logic
+  const handleEditUser = (user) => {
+    setUserToEdit(user);
+    setEditUserModal(true);
+    setTimeout(() => {
+      editUserForm.setFieldsValue({
+        name: user.name,
+        contact: user.contact,
+        location: user.location,
+      });
+    }, 0);
+  };
+  const handleUpdateUser = async () => {
+    try {
+      const values = await editUserForm.validateFields();
+      setEditUserLoading(true);
+      const res = await requestApi(
+        "PATCH",
+        `/attendance/staffs/${userToEdit._id}`,
+        values
+      );
+      setEditUserLoading(false);
+      if (res.success) {
+        showSuccess("User updated successfully");
+        setEditUserModal(false);
+        fetchUsersByDate(date);
+      } else {
+        showError(res.error?.error || "Failed to update user");
+      }
+    } catch (err) {
+      setEditUserLoading(false);
+    }
+  };
+  const handleDeleteUser = async (user) => {
+    try {
+      const res = await requestApi("DELETE", `/attendance/staffs/${user._id}`);
+      if (res.success) {
+        showSuccess("User deleted successfully");
+        fetchUsersByDate(date);
+      } else {
+        showError(res.error?.error || "Failed to delete user");
+      }
+    } catch {
+      showError("Failed to delete user");
+    }
+  };
+
   const columns = [
     {
       title: "Staff Name",
@@ -182,10 +239,11 @@ const AttendanceForm = () => {
             onChange={(t) =>
               setEditingTimes((prev) => ({ ...prev, inTime: t }))
             }
-            format="HH:mm"
+            format="hh:mm A"
+            use12Hours
           />
         ) : record.inTime !== "--" ? (
-          dayjs(record.inTime).format("HH:mm")
+          dayjs(record.inTime).format("hh:mm A")
         ) : (
           "--"
         ),
@@ -200,10 +258,11 @@ const AttendanceForm = () => {
             onChange={(t) =>
               setEditingTimes((prev) => ({ ...prev, outTime: t }))
             }
-            format="HH:mm"
+            format="hh:mm A"
+            use12Hours
           />
         ) : record.outTime !== "--" ? (
-          dayjs(record.outTime).format("HH:mm")
+          dayjs(record.outTime).format("hh:mm A")
         ) : (
           "--"
         ),
@@ -231,7 +290,7 @@ const AttendanceForm = () => {
                   onClick={() => handleSaveTimes(record)}
                   type="dashed"
                 >
-                  Save
+                  Update
                 </Button>
               ) : (
                 <Button
@@ -239,10 +298,23 @@ const AttendanceForm = () => {
                   onClick={() => handleEditTimes(record)}
                   type="dashed"
                 >
-                  Edit
+                  Edit Times
                 </Button>
               )
             ) : null}
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => handleEditUser(record)}
+              type="default"
+            />
+            <Popconfirm
+              title="Are you sure to delete this user?"
+              onConfirm={() => handleDeleteUser(record)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button icon={<DeleteOutlined />} danger type="default" />
+            </Popconfirm>
           </Space>
         );
       },
@@ -291,6 +363,40 @@ const AttendanceForm = () => {
         locations={locations}
         onSuccess={() => fetchUsersByDate(date)}
       />
+      <Modal
+        title="Edit User"
+        open={editUserModal}
+        onCancel={() => setEditUserModal(false)}
+        onOk={handleUpdateUser}
+        okText="Update"
+        confirmLoading={editUserLoading}
+      >
+        <Form form={editUserForm} layout="vertical">
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="contact"
+            label="Contact"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="location"
+            label="Location"
+            rules={[{ required: true }]}
+          >
+            <Select placeholder="Select location">
+              {locations.map((loc) => (
+                <Select.Option key={loc._id} value={loc._id}>
+                  {loc.location}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </Card>
   );
 };

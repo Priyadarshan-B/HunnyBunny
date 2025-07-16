@@ -8,5 +8,7 @@ router.get("/daily", attendance.get_attendance);
 router.post("/daily", attendance.post_attendance);
 router.patch("/daily", attendance.update_attendance);
 router.post("/staffs", attendance.create_contact);
+router.patch("/staffs/:id", attendance.update_contact);
+router.delete("/staffs/:id", attendance.delete_contact);
 
 module.exports = router;

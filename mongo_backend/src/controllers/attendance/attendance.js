@@ -168,3 +168,36 @@ exports.create_contact = async (req, res) => {
       .json({ error: "Failed to create contact", details: err.message });
   }
 };
+
+exports.update_contact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, contact, location } = req.body;
+    if (!id) return res.status(400).json({ error: "User ID is required" });
+    const update = {};
+    if (name) update.name = name;
+    if (contact) update.contact = contact;
+    if (location) update.location = location;
+    const updated = await Contact.findByIdAndUpdate(id, update, { new: true });
+    if (!updated) return res.status(404).json({ error: "User not found" });
+    res.status(200).json(updated);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to update user", details: err.message });
+  }
+};
+
+exports.delete_contact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "User ID is required" });
+    const deleted = await Contact.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ error: "User not found" });
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to delete user", details: err.message });
+  }
+};
