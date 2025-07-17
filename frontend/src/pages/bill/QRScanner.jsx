@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import QRWebcam from "./QRWebcam";
+// import QRWebcam from "./QRWebcam";
 import { Button } from "antd";
 import { SyncOutlined } from "@ant-design/icons";
 import ProductTable from "./ProductTable";
@@ -26,11 +26,13 @@ const QRScanner = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState("");
-  const [customerName, setCustomerName] = useState("--");
+  const [customerName, setCustomerName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("UPI");
   const [userLocation, setUserLocation] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [externalScannerBuffer, setExternalScannerBuffer] = useState("");
+  const [isExternalScannerActive, setIsExternalScannerActive] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("D!");
@@ -112,35 +114,35 @@ const QRScanner = () => {
   };
 
   const recalculateTotal = (updated) => {
-    console.log(updated)
+    console.log(updated);
     const total = updated.reduce((sum, p) => sum + p.price * p.quantity, 0);
     setTotalAmount(total);
-    console.log("total", total)
+    console.log("total", total);
   };
 
-const handleChange = (index, field, value) => {
-  setProducts((prev) => {
-    let updated = [...prev];
-    if (field === "delete") {
-      updated.splice(index, 1);
-    } else {
-      if (!updated[index]) {
-        updated[index] = { code: "", name: "", price: 0, quantity: 1 };
-      }
-      if (["price", "quantity"].includes(field)) {
-        updated[index][field] = parseFloat(value) || 0;
+  const handleChange = (index, field, value) => {
+    setProducts((prev) => {
+      let updated = [...prev];
+      if (field === "delete") {
+        updated.splice(index, 1);
       } else {
-        updated[index][field] = value;
+        if (!updated[index]) {
+          updated[index] = { code: "", name: "", price: 0, quantity: 1 };
+        }
+        if (["price", "quantity"].includes(field)) {
+          updated[index][field] = parseFloat(value) || 0;
+        } else {
+          updated[index][field] = value;
+        }
       }
-    }
 
-    setTimeout(() => recalculateTotal(updated), 0); 
-    return updated;
-  });
-};
-useEffect(() => {
-  recalculateTotal(products);
-}, [products]);
+      setTimeout(() => recalculateTotal(updated), 0);
+      return updated;
+    });
+  };
+  useEffect(() => {
+    recalculateTotal(products);
+  }, [products]);
 
   const handleClearAll = () => {
     scannedCodes.current.clear();
@@ -165,49 +167,61 @@ useEffect(() => {
     }
   };
 
-  const buildPayload = () => ({
+  const buildPayload = (customerName) => ({
     customer_name: customerName,
     total_amount: totalAmount,
     payment_method: paymentMethod,
     location: userLocation,
-    items: products.map((p) => ({
-      product_name: p.name,
-      quantity: p.quantity,
-      unit_price: p.price,
-    })),
+    items: products
+      .filter((p) => p.code && p.name) // Only include filled rows
+      .map((p) => ({
+        product_name: p.name,
+        quantity: p.quantity,
+        unit_price: p.price,
+      })),
   });
 
- const handleSaveBillOnly = async () => {
-  if (!customerName.trim()) return showWarning("Enter Customer Name");
-  if (products.length === 0) return showWarning("Scan Atleast 1 Product");
+  const handleSaveBillOnly = async () => {
+    // If customerName is empty or only whitespace, use '--'
+    const finalCustomerName = customerName.trim() ? customerName : "--";
+    if (products.length === 0) return showWarning("Scan Atleast 1 Product");
 
-  setIsSaving(true);
-  try {
-    await requestApi("POST", `/bills/bill-details`, buildPayload());
-    showSuccess("Bill saved successfully (F5)");
-    handleClearAll();
-  } catch {
-    showError("Failed to save bill.");
-  } finally {
-    setIsSaving(false);
-  }
-};
+    setIsSaving(true);
+    try {
+      await requestApi(
+        "POST",
+        `/bills/bill-details`,
+        buildPayload(finalCustomerName)
+      );
+      showSuccess("Bill saved successfully");
+      handleClearAll();
+    } catch {
+      showError("Failed to save bill.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-const handleSaveBill = async () => {
-  if (!customerName.trim()) return showWarning("Enter Customer Name");
-  if (products.length === 0) return showWarning("Scan Atleast 1 products");
+  const handleSaveBill = async () => {
+    // If customerName is empty or only whitespace, use '--'
+    const finalCustomerName = customerName.trim() ? customerName : "--";
+    if (products.length === 0) return showWarning("Scan Atleast 1 products");
 
-  setIsGenerating(true);
-  try {
-    await requestApi("POST", `/bills/bill-details`, buildPayload());
-    showSuccess("Bill saved successfully!");
-    handlePreviewBill();
-  } catch {
-    showError("Failed to save bill.");
-  } finally {
-    setIsGenerating(false);
-  }
-};
+    setIsGenerating(true);
+    try {
+      await requestApi(
+        "POST",
+        `/bills/bill-details`,
+        buildPayload(finalCustomerName)
+      );
+      showSuccess("Bill saved successfully!");
+      handlePreviewBill();
+    } catch {
+      showError("Failed to save bill.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handlePreviewBill = () => {
     const doc = generatePDF(products, totalAmount, customerName);
@@ -215,34 +229,71 @@ const handleSaveBill = async () => {
     setPdfUrl(dataUri);
     setShowPreview(true);
     handleClearAll();
-
   };
 
   useEffect(() => {
     let inputBuffer = "";
+    let isTypingInInput = false;
 
     const handleKeyPress = (e) => {
+      // Check if user is typing in an input field
+      if (
+        e.target.tagName === "INPUT" ||
+        e.target.tagName === "TEXTAREA" ||
+        e.target.contentEditable === "true"
+      ) {
+        isTypingInInput = true;
+        return; // Don't capture input when typing in form fields
+      }
+
+      // Reset typing flag when not in input
+      isTypingInInput = false;
+
       if (e.key === "Enter") {
         const code = inputBuffer.trim();
         inputBuffer = "";
+        setExternalScannerBuffer(""); // Clear visual buffer
+        setIsExternalScannerActive(false); // Hide indicator
         if (code && !scannedCodes.current.has(code)) {
           scannedCodes.current.add(code);
           fetchProduct(code);
+          showSuccess(`Scanned: ${code}`);
         }
-      } else {
+      } else if (e.key.length === 1 && !isTypingInInput) {
         inputBuffer += e.key;
+        setExternalScannerBuffer(inputBuffer); // Update visual buffer
+        setIsExternalScannerActive(true);
+
+        // Auto-hide indicator after 3 seconds of inactivity
+        setTimeout(() => {
+          setIsExternalScannerActive(false);
+          setExternalScannerBuffer("");
+        }, 3000);
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      // Handle ESC key to clear buffer
+      if (e.key === "Escape") {
+        inputBuffer = "";
+        setExternalScannerBuffer("");
+        setIsExternalScannerActive(false);
+        showWarning("Scanner buffer cleared.");
       }
     };
 
     window.addEventListener("keypress", handleKeyPress);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
   return (
     <div className="qr-container">
       {/* <QRWebcam onScanProduct={fetchProduct} /> */}
+
       <div className="qr-reader-table">
         <CustomerForm
           customerName={customerName}
@@ -257,8 +308,29 @@ const handleSaveBill = async () => {
           handleClearAll={handleClearAll}
           handleSaveBill={handleSaveBill}
           handleProductSelect={handleProductSelect}
+          isExternalScannerActive={isExternalScannerActive}
+          externalScannerBuffer={externalScannerBuffer}
         />
         <div className="flex justify-end gap-2 bill-container">
+          {/* <Button
+            style={{
+              backgroundColor: "#9b59b6",
+              color: "white",
+              border: "none",
+            }}
+            type="default"
+            onClick={() => {
+              const testBarcode = "8901063012813"; 
+              if (!scannedCodes.current.has(testBarcode)) {
+                scannedCodes.current.add(testBarcode);
+                fetchProduct(testBarcode);
+                showSuccess(`Test barcode scanned: ${testBarcode}`);
+              }
+            }}
+          >
+            Test Barcode
+          </Button> */}
+
           <Button
             danger
             type="primary"

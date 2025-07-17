@@ -8,3 +8,31 @@
     align-items: center;
     justify-content: center;
   }
+
+/* Barcode Scanner Styles */
+#reader {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+#reader video {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Scanner modal styles */
+.scanner-modal .ant-modal-content {
+  background-color: var(--background);
+  color: var(--text);
+}
+
+.scanner-modal .ant-modal-header {
+  background-color: var(--background-1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.scanner-modal .ant-modal-title {
+  color: var(--text);
+}

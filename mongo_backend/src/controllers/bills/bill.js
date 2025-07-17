@@ -7,7 +7,6 @@ exports.post_bill = async (req, res) => {
     const { customer_name, total_amount, payment_method, items, location } = req.body;
 
     if (
-      !customer_name ||
       !total_amount ||
       !payment_method ||
       !items ||

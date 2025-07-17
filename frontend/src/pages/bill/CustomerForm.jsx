@@ -14,18 +14,18 @@ const CustomerForm = ({
     style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}
   >
     <div style={{ flex: 1, minWidth: "200px" }}>
-      <label className="block mb-1 font-medium">Customer Name:</label>
+      <label className="block mb-1 font-medium">Customer Name</label>
       <Input
         value={customerName}
         onChange={(e) =>
-          setCustomerName(e.target.value.trim() === "" ? "--" : e.target.value)
+          setCustomerName(e.target.value)
         }
         placeholder="Enter customer name"
       />
     </div>
 
     <div style={{ flex: 1, minWidth: "200px" }}>
-      <label className="block mb-1 font-medium">Payment Method:</label>
+      <label className="block mb-1 font-medium">Payment Method</label>
       <Select
         value={paymentMethod}
         onChange={setPaymentMethod}
