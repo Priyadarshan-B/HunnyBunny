@@ -433,7 +433,7 @@ export default function QRForm() {
                 icon={<ScanOutlined />}
                 disabled={scannedBarcode !== null || isExternalScannerActive}
               >
-                External Scanner
+                Barcode Scanner
               </Button>
 
               {/* <Button

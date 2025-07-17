@@ -9,7 +9,7 @@ const generatePDF = (products, totalAmount, customerName) => {
   const contentLines = headerLines + productLines + footerLines;
 
   // 12pt line height * total lines + extra 60pt buffer
-  const pageHeight = contentLines * lineHeight + 10;
+  const pageHeight = contentLines * lineHeight + 50;
 
   const doc = new jsPDF({
     unit: "pt",
