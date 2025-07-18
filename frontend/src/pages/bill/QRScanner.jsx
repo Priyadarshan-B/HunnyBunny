@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-// import QRWebcam from "./QRWebcam";
 import { Button } from "antd";
 import { SyncOutlined } from "@ant-design/icons";
 import ProductTable from "./ProductTable";
@@ -16,11 +15,11 @@ import {
 } from "../../components/toast/toast";
 import requestApi from "../../components/utils/axios";
 import { jwtDecode } from "jwt-decode";
+import { BrowserMultiFormatReader } from "@zxing/library";
 
 const QRScanner = () => {
-  const webcamRef = useRef(null);
-  const canvasRef = useRef(null);
   const scannedCodes = useRef(new Set());
+  const videoRef = useRef(null);
 
   const [products, setProducts] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -46,37 +45,43 @@ const QRScanner = () => {
     }
   }, []);
 
-  const capture = useCallback(() => {
-    const imageSrc = webcamRef.current?.getScreenshot();
-    if (!imageSrc) return;
-
-    const img = new Image();
-    img.src = imageSrc;
-    img.onload = () => {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = window.jsQR(
-        imageData.data,
-        imageData.width,
-        imageData.height
-      );
-
-      if (code && !scannedCodes.current.has(code.data)) {
-        scannedCodes.current.add(code.data);
-        fetchProduct(code.data);
-      }
-    };
+  const clearExternalScannerBuffer = useCallback(() => {
+    setExternalScannerBuffer("");
+    setIsExternalScannerActive(false);
   }, []);
 
+  // ZXing barcode scanner
   useEffect(() => {
-    const interval = setInterval(capture, 1000);
-    return () => clearInterval(interval);
-  }, [capture]);
+    const codeReader = new BrowserMultiFormatReader();
+    let active = true;
+    let selectedDeviceId;
+
+    codeReader.listVideoInputDevices().then((videoInputDevices) => {
+      if (videoInputDevices.length > 0) {
+        selectedDeviceId = videoInputDevices[0].deviceId;
+        codeReader.decodeFromVideoDevice(
+          selectedDeviceId,
+          videoRef.current,
+          (result, err) => {
+            if (!active) return;
+            if (result) {
+              const code = result.getText();
+              if (!scannedCodes.current.has(code)) {
+                scannedCodes.current.add(code);
+                fetchProduct(code);
+                showSuccess(`Scanned: ${code}`);
+                clearExternalScannerBuffer(); // Clear buffer after successful scan
+              }
+            }
+          }
+        );
+      }
+    });
+    return () => {
+      active = false;
+      codeReader.reset();
+    };
+  }, [clearExternalScannerBuffer]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -114,10 +119,8 @@ const QRScanner = () => {
   };
 
   const recalculateTotal = (updated) => {
-    console.log(updated);
     const total = updated.reduce((sum, p) => sum + p.price * p.quantity, 0);
     setTotalAmount(total);
-    console.log("total", total);
   };
 
   const handleChange = (index, field, value) => {
@@ -135,7 +138,6 @@ const QRScanner = () => {
           updated[index][field] = value;
         }
       }
-
       setTimeout(() => recalculateTotal(updated), 0);
       return updated;
     });
@@ -173,7 +175,7 @@ const QRScanner = () => {
     payment_method: paymentMethod,
     location: userLocation,
     items: products
-      .filter((p) => p.code && p.name) // Only include filled rows
+      .filter((p) => p.code && p.name)
       .map((p) => ({
         product_name: p.name,
         quantity: p.quantity,
@@ -182,7 +184,6 @@ const QRScanner = () => {
   });
 
   const handleSaveBillOnly = async () => {
-    // If customerName is empty or only whitespace, use '--'
     const finalCustomerName = customerName.trim() ? customerName : "--";
     if (products.length === 0) return showWarning("Scan Atleast 1 Product");
 
@@ -203,7 +204,6 @@ const QRScanner = () => {
   };
 
   const handleSaveBill = async () => {
-    // If customerName is empty or only whitespace, use '--'
     const finalCustomerName = customerName.trim() ? customerName : "--";
     if (products.length === 0) return showWarning("Scan Atleast 1 products");
 
@@ -236,30 +236,18 @@ const QRScanner = () => {
     let isTypingInInput = false;
 
     const handleKeyPress = (e) => {
-      // Check if user is typing in an input field
-      if (
-        e.target.tagName === "INPUT" ||
-        e.target.tagName === "TEXTAREA" ||
-        e.target.contentEditable === "true"
-      ) {
-        isTypingInInput = true;
-        return; // Don't capture input when typing in form fields
-      }
-
-      // Reset typing flag when not in input
-      isTypingInInput = false;
-
+      // REMOVED: Check for input/textarea/contentEditable focus
+      // Always build the buffer for barcode scans
       if (e.key === "Enter") {
         const code = inputBuffer.trim();
         inputBuffer = "";
-        setExternalScannerBuffer(""); // Clear visual buffer
-        setIsExternalScannerActive(false); // Hide indicator
+        clearExternalScannerBuffer(); // Clear buffer after successful scan
         if (code && !scannedCodes.current.has(code)) {
           scannedCodes.current.add(code);
           fetchProduct(code);
           showSuccess(`Scanned: ${code}`);
         }
-      } else if (e.key.length === 1 && !isTypingInInput) {
+      } else if (e.key.length === 1) {
         inputBuffer += e.key;
         setExternalScannerBuffer(inputBuffer); // Update visual buffer
         setIsExternalScannerActive(true);
@@ -292,7 +280,14 @@ const QRScanner = () => {
 
   return (
     <div className="qr-container">
-      {/* <QRWebcam onScanProduct={fetchProduct} /> */}
+      {/* Barcode Scanner Preview */}
+      <div className="qr-reader">
+        <h2 className="qr-title">Barcode Scanner</h2>
+        <video
+          ref={videoRef}
+          style={{ width: "100%", maxWidth: 400, marginBottom: 16 }}
+        />
+      </div>
 
       <div className="qr-reader-table">
         <CustomerForm
@@ -310,6 +305,7 @@ const QRScanner = () => {
           handleProductSelect={handleProductSelect}
           isExternalScannerActive={isExternalScannerActive}
           externalScannerBuffer={externalScannerBuffer}
+          clearExternalScannerBuffer={clearExternalScannerBuffer}
         />
         <div className="flex justify-end gap-2 bill-container">
           {/* <Button
@@ -320,11 +316,13 @@ const QRScanner = () => {
             }}
             type="default"
             onClick={() => {
-              const testBarcode = "8901063012813"; 
+              const testBarcode = "8901063012813";
               if (!scannedCodes.current.has(testBarcode)) {
                 scannedCodes.current.add(testBarcode);
                 fetchProduct(testBarcode);
                 showSuccess(`Test barcode scanned: ${testBarcode}`);
+              } else {
+                showWarning("Test barcode already scanned in this session.");
               }
             }}
           >
@@ -359,7 +357,6 @@ const QRScanner = () => {
           </Button>
         </div>
       </div>
-
       {showPreview && (
         <PDFPreviewModal
           pdfUrl={pdfUrl}
