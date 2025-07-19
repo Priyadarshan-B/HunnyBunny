@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Modal, Input, Button, Select } from "antd";
+import { Modal, Button, Select } from "antd";
 import { PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
@@ -26,16 +26,18 @@ const StickerModal = ({
     const inchToPx = 96;
     const stickerWidth = 2 * inchToPx; // 192px
     const stickerHeight = 1 * inchToPx; // 96px
-    const gap = 0.25 * inchToPx; // 24px
-    const rowMargin = 12; // 5px margin below each row
+    const gap = 24; // 0.25 inch
+    const rowMargin = 12;
 
     const stickersPerRow = 2;
     const totalRows = Math.ceil(stickerCount / stickersPerRow);
 
+    // Increase page width slightly if only 1 row (e.g., 4 stickers)
     const pageWidth =
-      stickerCount >= stickersPerRow
-        ? gap + stickersPerRow * stickerWidth + (stickersPerRow - 1) * gap + gap
-        : gap + stickerWidth + gap;
+      stickerCount <= stickersPerRow
+        ? gap + stickerWidth * stickerCount + gap * (stickerCount + 1)
+        : gap + stickersPerRow * stickerWidth + (stickersPerRow - 1) * gap + gap;
+
     const pageHeight =
       gap +
       totalRows * stickerHeight +
@@ -62,7 +64,6 @@ const StickerModal = ({
       clone.style.width = `${stickerWidth}px`;
       clone.style.height = `${stickerHeight}px`;
       clone.style.boxSizing = "border-box";
-      // clone.style.border = "1px solid #000"
       clone.style.background = "#fff";
 
       hiddenContainer.appendChild(clone);
@@ -79,7 +80,7 @@ const StickerModal = ({
       const col = i % stickersPerRow;
 
       const x = gap + col * (stickerWidth + gap);
-      const y = gap + 13 + row * (stickerHeight + gap + rowMargin); // 13px gap at top of PDF
+      const y = gap + 13 + row * (stickerHeight + gap + rowMargin);
 
       pdf.addImage(imgData, "PNG", x, y, stickerWidth, stickerHeight);
       hiddenContainer.removeChild(clone);
@@ -107,7 +108,6 @@ const StickerModal = ({
               height: 96,
               padding: 10,
               textAlign: "center",
-              // border: "1px solid lightgray",
               margin: 24,
               display: "flex",
               alignItems: "center",
@@ -147,19 +147,17 @@ const StickerModal = ({
                     <p style={{ fontWeight: "400", fontSize: "8px" }}>
                       pkd:{" "}
                       {editStates[product.id]?.pkd
-                        ? dayjs(
-                            editStates[product.id].pkd,
+                        ? dayjs(editStates[product.id].pkd, "DD-MM-YYYY").format(
                             "DD-MM-YYYY"
-                          ).format("DD-MM-YYYY")
+                          )
                         : "--"}
                     </p>
                     <p style={{ fontWeight: "400", fontSize: "8px" }}>
                       exp:{" "}
                       {editStates[product.id]?.exp
-                        ? dayjs(
-                            editStates[product.id].exp,
+                        ? dayjs(editStates[product.id].exp, "DD-MM-YYYY").format(
                             "DD-MM-YYYY"
-                          ).format("DD-MM-YYYY")
+                          )
                         : "--"}
                     </p>
                   </div>
@@ -168,7 +166,6 @@ const StickerModal = ({
             </div>
           </div>
 
-          {/* Replace Input with Select for sticker count */}
           <Select
             value={stickerCount}
             onChange={setStickerCount}
