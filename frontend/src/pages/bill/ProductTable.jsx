@@ -30,6 +30,7 @@ const ProductTable = ({
   handleProductSelect,
   isExternalScannerActive,
   externalScannerBuffer,
+  clearExternalScannerBuffer,
 }) => {
   const [dataSource, setDataSource] = useState([]);
   const [productList, setProductList] = useState([]);
@@ -63,6 +64,29 @@ const ProductTable = ({
       }
     }
   }, []);
+
+  useEffect(() => {
+    // Focus the code input of the last row if a new row is added
+    if (codeRefs.current && codeRefs.current.length > 0) {
+      const lastIndex = codeRefs.current.length - 1;
+      if (codeRefs.current[lastIndex] && codeRefs.current[lastIndex].focus) {
+        codeRefs.current[lastIndex].focus();
+      }
+    }
+  }, [dataSource.length]);
+
+  useEffect(() => {
+    // If dataSource is reset to a single empty row (after clear all), focus the first code input
+    if (
+      dataSource.length === 1 &&
+      codeRefs.current[0] &&
+      codeRefs.current[0].focus &&
+      !dataSource[0].code &&
+      !dataSource[0].name
+    ) {
+      codeRefs.current[0].focus();
+    }
+  }, [dataSource]);
 
   const fetchProducts = async (term = "") => {
     if (!term.trim()) {
@@ -149,6 +173,7 @@ const ProductTable = ({
         }
         return updated;
       });
+      if (clearExternalScannerBuffer) clearExternalScannerBuffer();
     }
   };
 
@@ -187,6 +212,10 @@ const ProductTable = ({
               handleChange(index, "price", parseFloat(product.price));
               handleChange(index, "quantity", 1);
             }
+            if (clearExternalScannerBuffer) clearExternalScannerBuffer();
+          }}
+          onBlur={() => {
+            if (clearExternalScannerBuffer) clearExternalScannerBuffer();
           }}
           options={productList.map((p) => ({
             label: `${p.code} - ${p.name}`,
@@ -235,6 +264,10 @@ const ProductTable = ({
               handleChange(index, "price", parseFloat(product.price));
               handleChange(index, "quantity", 1);
             }
+            if (clearExternalScannerBuffer) clearExternalScannerBuffer();
+          }}
+          onBlur={() => {
+            if (clearExternalScannerBuffer) clearExternalScannerBuffer();
           }}
           options={productList.map((p) => ({
             label: `${p.name} (${p.code})`,
