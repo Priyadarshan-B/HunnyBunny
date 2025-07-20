@@ -8,6 +8,7 @@ const CustomerForm = ({
   setCustomerName,
   paymentMethod,
   setPaymentMethod,
+
 }) => (
   <div
     className="qr-form"

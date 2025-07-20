@@ -51,37 +51,37 @@ const QRScanner = () => {
   }, []);
 
   // ZXing barcode scanner
-  useEffect(() => {
-    const codeReader = new BrowserMultiFormatReader();
-    let active = true;
-    let selectedDeviceId;
+  // useEffect(() => {
+  //   const codeReader = new BrowserMultiFormatReader();
+  //   let active = true;
+  //   let selectedDeviceId;
 
-    codeReader.listVideoInputDevices().then((videoInputDevices) => {
-      if (videoInputDevices.length > 0) {
-        selectedDeviceId = videoInputDevices[0].deviceId;
-        codeReader.decodeFromVideoDevice(
-          selectedDeviceId,
-          videoRef.current,
-          (result, err) => {
-            if (!active) return;
-            if (result) {
-              const code = result.getText();
-              if (!scannedCodes.current.has(code)) {
-                scannedCodes.current.add(code);
-                fetchProduct(code);
-                showSuccess(`Scanned: ${code}`);
-                clearExternalScannerBuffer(); // Clear buffer after successful scan
-              }
-            }
-          }
-        );
-      }
-    });
-    return () => {
-      active = false;
-      codeReader.reset();
-    };
-  }, [clearExternalScannerBuffer]);
+  //   codeReader.listVideoInputDevices().then((videoInputDevices) => {
+  //     if (videoInputDevices.length > 0) {
+  //       selectedDeviceId = videoInputDevices[0].deviceId;
+  //       codeReader.decodeFromVideoDevice(
+  //         selectedDeviceId,
+  //         videoRef.current,
+  //         (result, err) => {
+  //           if (!active) return;
+  //           if (result) {
+  //             const code = result.getText();
+  //             if (!scannedCodes.current.has(code)) {
+  //               scannedCodes.current.add(code);
+  //               fetchProduct(code);
+  //               showSuccess(`Scanned: ${code}`);
+  //               clearExternalScannerBuffer(); // Clear buffer after successful scan
+  //             }
+  //           }
+  //         }
+  //       );
+  //     }
+  //   });
+  //   return () => {
+  //     active = false;
+  //     codeReader.reset();
+  //   };
+  // }, [clearExternalScannerBuffer]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -281,13 +281,13 @@ const QRScanner = () => {
   return (
     <div className="qr-container">
       {/* Barcode Scanner Preview */}
-      <div className="qr-reader">
+      {/* <div className="qr-reader">
         <h2 className="qr-title">Barcode Scanner</h2>
         <video
           ref={videoRef}
           style={{ width: "100%", maxWidth: 400, marginBottom: 16 }}
         />
-      </div>
+      </div> */}
 
       <div className="qr-reader-table">
         <CustomerForm

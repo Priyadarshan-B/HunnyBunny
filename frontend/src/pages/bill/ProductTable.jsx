@@ -8,12 +8,12 @@ import {
   Spin,
   Modal,
   Popconfirm,
-} from "antd"; // Import Modal
+} from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
   ExclamationCircleOutlined,
-} from "@ant-design/icons"; // Import ExclamationCircleOutlined
+} from "@ant-design/icons";
 import requestApi from "../../components/utils/axios";
 import { debounce } from "lodash";
 import { jwtDecode } from "jwt-decode";
@@ -25,24 +25,22 @@ const ProductTable = ({
   products,
   handleChange,
   totalAmount,
-  handleClearAll,
-  handleSaveBill,
   handleProductSelect,
   isExternalScannerActive,
   externalScannerBuffer,
   clearExternalScannerBuffer,
+  setActiveField,
 }) => {
   const [dataSource, setDataSource] = useState([]);
   const [productList, setProductList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [location, setLocation] = useState("");
-  const [inputMode, setInputMode] = useState({});
   const codeRefs = useRef([]);
   const nameRefs = useRef([]);
+  const qtyRefs = useRef([]);
+  const priceRefs = useRef([]);
 
   useEffect(() => {
     let updated = products.length > 0 ? [...products] : [];
-    // Ensure there is always one empty row at the end
     if (
       updated.length === 0 ||
       updated[updated.length - 1].code ||
@@ -53,20 +51,9 @@ const ProductTable = ({
     setDataSource(updated);
   }, [products]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("D!");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setLocation(decoded?.location || "");
-      } catch (err) {
-        console.error("Invalid token:", err);
-      }
-    }
-  }, []);
+
 
   useEffect(() => {
-    // Focus the code input of the last row if a new row is added
     if (codeRefs.current && codeRefs.current.length > 0) {
       const lastIndex = codeRefs.current.length - 1;
       if (codeRefs.current[lastIndex] && codeRefs.current[lastIndex].focus) {
@@ -76,7 +63,6 @@ const ProductTable = ({
   }, [dataSource.length]);
 
   useEffect(() => {
-    // If dataSource is reset to a single empty row (after clear all), focus the first code input
     if (
       dataSource.length === 1 &&
       codeRefs.current[0] &&
@@ -132,11 +118,11 @@ const ProductTable = ({
     setDataSource(newData);
     handleChange(index, "delete", null);
   };
+
   const onFieldChange = (index, field, value) => {
     const updated = [...dataSource];
     updated[index][field] =
       field === "price" || field === "quantity" ? Number(value) : value;
-    // If the last row is now filled, add a new empty row
     if (
       updated.length > 0 &&
       updated[updated.length - 1].code &&
@@ -165,7 +151,6 @@ const ProductTable = ({
         price: parseFloat(selected.price),
         quantity: 1,
       });
-      // Automatically add a new row if the last row is filled
       setDataSource((prev) => {
         const updated = [...prev];
         if (updated.length === 0 || updated[updated.length - 1].code) {
@@ -174,6 +159,81 @@ const ProductTable = ({
         return updated;
       });
       if (clearExternalScannerBuffer) clearExternalScannerBuffer();
+    }
+  };
+
+  const handleTableKeyDown = (e, rowIndex, field) => {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const maxRow = dataSource.length - 1;
+      
+      switch (e.key) {
+        case "ArrowRight":
+          if (field === "code" && nameRefs.current[rowIndex]) {
+            nameRefs.current[rowIndex].focus();
+          } else if (field === "name" && qtyRefs.current[rowIndex]) {
+            qtyRefs.current[rowIndex].focus();
+          } else if (field === "qty" && priceRefs.current[rowIndex]) {
+            priceRefs.current[rowIndex].focus();
+          }
+          break;
+          
+        case "ArrowLeft":
+          if (field === "name" && codeRefs.current[rowIndex]) {
+            codeRefs.current[rowIndex].focus();
+          } else if (field === "qty" && nameRefs.current[rowIndex]) {
+            nameRefs.current[rowIndex].focus();
+          } else if (field === "price" && qtyRefs.current[rowIndex]) {
+            qtyRefs.current[rowIndex].focus();
+          }
+          break;
+          
+        case "ArrowDown":
+          if (rowIndex < maxRow) {
+            const nextRowIndex = rowIndex + 1;
+            if (field === "code" && codeRefs.current[nextRowIndex]) {
+              codeRefs.current[nextRowIndex].focus();
+            } else if (field === "name" && nameRefs.current[nextRowIndex]) {
+              nameRefs.current[nextRowIndex].focus();
+            } else if (field === "qty" && qtyRefs.current[nextRowIndex]) {
+              qtyRefs.current[nextRowIndex].focus();
+            } else if (field === "price" && priceRefs.current[nextRowIndex]) {
+              priceRefs.current[nextRowIndex].focus();
+            }
+          } else {
+            // Move to customer name field when at last row
+            setActiveField("customerName");
+            const customerNameInput = document.querySelector('input[placeholder="Enter customer name"]');
+            if (customerNameInput) {
+              customerNameInput.focus();
+            }
+          }
+          break;
+          
+        case "ArrowUp":
+          if (rowIndex > 0) {
+            const prevRowIndex = rowIndex - 1;
+            if (field === "code" && codeRefs.current[prevRowIndex]) {
+              codeRefs.current[prevRowIndex].focus();
+            } else if (field === "name" && nameRefs.current[prevRowIndex]) {
+              nameRefs.current[prevRowIndex].focus();
+            } else if (field === "qty" && qtyRefs.current[prevRowIndex]) {
+              qtyRefs.current[prevRowIndex].focus();
+            } else if (field === "price" && priceRefs.current[prevRowIndex]) {
+              priceRefs.current[prevRowIndex].focus();
+            }
+          } else {
+            // Move to payment method field when at first row
+            setActiveField("paymentMethod");
+            const paymentMethodSelect = document.querySelector('.ant-select-selector');
+            if (paymentMethodSelect) {
+              paymentMethodSelect.focus();
+            }
+          }
+          break;
+      }
     }
   };
 
@@ -221,12 +281,9 @@ const ProductTable = ({
             label: `${p.code} - ${p.name}`,
             value: p.code,
           }))}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowRight") {
-              e.preventDefault();
-              nameRefs.current[index]?.focus?.();
-            }
-          }}
+          onKeyDown={(e) => handleTableKeyDown(e, index, "code")}
+          data-row={index}
+          data-field="code"
         />
       ),
     },
@@ -273,12 +330,9 @@ const ProductTable = ({
             label: `${p.name} (${p.code})`,
             value: p.name,
           }))}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowLeft") {
-              e.preventDefault();
-              codeRefs.current[index]?.focus?.();
-            }
-          }}
+          onKeyDown={(e) => handleTableKeyDown(e, index, "name")}
+          data-row={index}
+          data-field="name"
         />
       ),
     },
@@ -287,11 +341,15 @@ const ProductTable = ({
       dataIndex: "quantity",
       render: (text, record, index) => (
         <Input
+          ref={(el) => (qtyRefs.current[index] = el)}
           type="number"
           min={1}
           value={text}
           onChange={(e) => onFieldChange(index, "quantity", e.target.value)}
           placeholder="Qty"
+          onKeyDown={(e) => handleTableKeyDown(e, index, "qty")}
+          data-row={index}
+          data-field="qty"
         />
       ),
     },
@@ -300,12 +358,16 @@ const ProductTable = ({
       dataIndex: "price",
       render: (text, record, index) => (
         <Input
+          ref={(el) => (priceRefs.current[index] = el)}
           type="number"
           min={0}
           step="0.01"
           value={text}
           onChange={(e) => onFieldChange(index, "price", e.target.value)}
           placeholder="Price"
+          onKeyDown={(e) => handleTableKeyDown(e, index, "price")}
+          data-row={index}
+          data-field="price"
         />
       ),
     },
@@ -335,7 +397,6 @@ const ProductTable = ({
 
   return (
     <div className="bill-container">
-      {/* External Scanner Buffer */}
       {isExternalScannerActive && externalScannerBuffer && (
         <div className="mb-4 bg-green-100 text-green-800 px-4 py-3 rounded-lg shadow-sm border border-green-200">
           <div className="flex items-center justify-between">
@@ -400,12 +461,10 @@ const ProductTable = ({
             if (e.key === "ArrowRight" && nameRefs.current[rowIndex]) {
               nameRefs.current[rowIndex].focus &&
                 nameRefs.current[rowIndex].focus();
-              console.log("ArrowRight");
             }
             if (e.key === "ArrowLeft" && codeRefs.current[rowIndex]) {
               codeRefs.current[rowIndex].focus &&
                 codeRefs.current[rowIndex].focus();
-              console.log("ArrowLeft");
             }
           }
         }}
@@ -426,15 +485,6 @@ const ProductTable = ({
       </div>
 
       <div className="qr-total">Total Amount: ₹{totalAmount.toFixed(2)}</div>
-
-      {/* <div className="qr-actions">
-                <button className="qr-clear-btn" onClick={handleClearAll}>
-                    Clear All
-                </button>
-                <button className="qr-bill-btn" onClick={handleSaveBill}>
-                    Save & Generate Bill
-                </button>
-            </div> */}
     </div>
   );
 };
