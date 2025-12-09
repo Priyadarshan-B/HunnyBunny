@@ -21,6 +21,7 @@ import './App.css';
 
 const isElectron = window?.process?.versions?.electron;
 const Router = isElectron ? HashRouter : BrowserRouter;
+console.log("isElectron:", isElectron, "Router:", isElectron ? "HashRouter" : "BrowserRouter");
 
 function App() {
   return (

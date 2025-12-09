@@ -20,6 +20,22 @@ const isTokenExpired = (token) => {
   }
 };
 
+// Navigation callback for login redirect
+let navigateToLogin = null;
+export const setNavigateToLogin = (fn) => {
+  navigateToLogin = fn;
+};
+
+// Helper function to handle login redirect
+const redirectToLogin = () => {
+  if (navigateToLogin) {
+    navigateToLogin();
+  } else {
+    // Fallback for Electron HashRouter
+    window.location.hash = "#/login";
+  }
+};
+
 // Create an Axios instance
 const api = axios.create({
   baseURL: apiHost,
@@ -32,7 +48,7 @@ api.interceptors.request.use(
     if (token) {
       if (isTokenExpired(token)) {
         localStorage.removeItem("D!");
-        window.location.href = "/login";
+        redirectToLogin();
         return Promise.reject({
           response: {
             status: 401,
@@ -57,7 +73,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("D!");
-      window.location.href = "/login";
+      redirectToLogin();
     }
     toast.error("Invalid Request..");
     console.error("Error in api:", error);

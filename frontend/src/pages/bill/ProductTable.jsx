@@ -30,6 +30,7 @@ const ProductTable = ({
   externalScannerBuffer,
   clearExternalScannerBuffer,
   setActiveField,
+  handleBufferInput,
 }) => {
   const [dataSource, setDataSource] = useState([]);
   const [productList, setProductList] = useState([]);
@@ -50,8 +51,6 @@ const ProductTable = ({
     }
     setDataSource(updated);
   }, [products]);
-
-
 
   useEffect(() => {
     if (codeRefs.current && codeRefs.current.length > 0) {
@@ -133,6 +132,10 @@ const ProductTable = ({
     setDataSource(updated);
     handleChange(index, field, value);
 
+    // Buffer update for quantity and price
+    if (["quantity", "price"].includes(field)) {
+      handleBufferInput(value?.toString() || "");
+    }
     if (["code", "name"].includes(field)) {
       const productFieldList = productList.map((p) => p[field]);
       setInputMode((prev) => ({
@@ -166,9 +169,9 @@ const ProductTable = ({
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const maxRow = dataSource.length - 1;
-      
+
       switch (e.key) {
         case "ArrowRight":
           if (field === "code" && nameRefs.current[rowIndex]) {
@@ -179,7 +182,7 @@ const ProductTable = ({
             priceRefs.current[rowIndex].focus();
           }
           break;
-          
+
         case "ArrowLeft":
           if (field === "name" && codeRefs.current[rowIndex]) {
             codeRefs.current[rowIndex].focus();
@@ -189,7 +192,7 @@ const ProductTable = ({
             qtyRefs.current[rowIndex].focus();
           }
           break;
-          
+
         case "ArrowDown":
           if (rowIndex < maxRow) {
             const nextRowIndex = rowIndex + 1;
@@ -205,13 +208,15 @@ const ProductTable = ({
           } else {
             // Move to customer name field when at last row
             setActiveField("customerName");
-            const customerNameInput = document.querySelector('input[placeholder="Enter customer name"]');
+            const customerNameInput = document.querySelector(
+              'input[placeholder="Enter customer name"]'
+            );
             if (customerNameInput) {
               customerNameInput.focus();
             }
           }
           break;
-          
+
         case "ArrowUp":
           if (rowIndex > 0) {
             const prevRowIndex = rowIndex - 1;
@@ -227,7 +232,9 @@ const ProductTable = ({
           } else {
             // Move to payment method field when at first row
             setActiveField("paymentMethod");
-            const paymentMethodSelect = document.querySelector('.ant-select-selector');
+            const paymentMethodSelect = document.querySelector(
+              ".ant-select-selector"
+            );
             if (paymentMethodSelect) {
               paymentMethodSelect.focus();
             }

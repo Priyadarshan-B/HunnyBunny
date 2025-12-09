@@ -32,6 +32,7 @@ const QRScanner = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [externalScannerBuffer, setExternalScannerBuffer] = useState("");
   const [isExternalScannerActive, setIsExternalScannerActive] = useState(false);
+  const bufferTimeoutRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem("D!");
@@ -45,9 +46,20 @@ const QRScanner = () => {
     }
   }, []);
 
+  const handleBufferInput = useCallback((value) => {
+    setExternalScannerBuffer(value);
+    setIsExternalScannerActive(true);
+    if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
+    bufferTimeoutRef.current = setTimeout(() => {
+      setExternalScannerBuffer("");
+      setIsExternalScannerActive(false);
+    }, 500);
+  }, []);
+
   const clearExternalScannerBuffer = useCallback(() => {
     setExternalScannerBuffer("");
     setIsExternalScannerActive(false);
+    if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
   }, []);
 
   // ZXing barcode scanner
@@ -295,6 +307,7 @@ const QRScanner = () => {
           setCustomerName={setCustomerName}
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
+          handleBufferInput={handleBufferInput}
         />
         <ProductTable
           products={products}
@@ -306,6 +319,7 @@ const QRScanner = () => {
           isExternalScannerActive={isExternalScannerActive}
           externalScannerBuffer={externalScannerBuffer}
           clearExternalScannerBuffer={clearExternalScannerBuffer}
+          handleBufferInput={handleBufferInput}
         />
         <div className="flex justify-end gap-2 bill-container">
           {/* <Button

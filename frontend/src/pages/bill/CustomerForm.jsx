@@ -8,7 +8,7 @@ const CustomerForm = ({
   setCustomerName,
   paymentMethod,
   setPaymentMethod,
-
+  handleBufferInput,
 }) => (
   <div
     className="qr-form"
@@ -18,9 +18,10 @@ const CustomerForm = ({
       <label className="block mb-1 font-medium">Customer Name</label>
       <Input
         value={customerName}
-        onChange={(e) =>
-          setCustomerName(e.target.value)
-        }
+        onChange={(e) => {
+          setCustomerName(e.target.value);
+          handleBufferInput(e.target.value);
+        }}
         placeholder="Enter customer name"
       />
     </div>
